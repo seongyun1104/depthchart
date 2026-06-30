@@ -1,0 +1,37 @@
+.venv/
+venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+.DS_Store
+.idea/
+.vscode/
+
+dist/
+build/
+*.egg-info/
+
+# benchmark artifacts
+results/
+runs/
+*.parquet
+*.jsonl
+*.csv
+!benchmarks/**/schema/*.csv
+
+# model weights / cache
+*.safetensors
+*.bin
+*.pt
+hf_cache/
+sglang_cache/
+lmcache_storage/
+
+# secrets
+.env
+.env.*
+!.env.example
