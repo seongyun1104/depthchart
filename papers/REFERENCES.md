@@ -55,5 +55,8 @@ for the hypothesis or for the sweep design.
 - **SGLang** — `python/sglang/srt/managers/scheduler.py` is the scheduler
   entry. `--enable-lmcache`, NEXTN / EAGLE / EAGLE3, DFlash via Spec V2.
 - **EXAONE 4.5 33B FP8** — `LGAI-EXAONE/EXAONE-4.5-33B-FP8`. VLM, used
-  text-only here. EAGLE3-shape draft head per the EXAONE MoE MTP ≡ EAGLE
-  mapping.
+  text-only here. Native MTP head built into the model (64 main +
+  1 MTP layer per the model card). vLLM serves it via `--speculative_config
+  '{"method":"mtp",...}'`; SGLang can drive the same head via the `MTP`
+  algorithm flag (preferred) or via `EAGLE` (model-card fallback). We
+  sweep both methods.

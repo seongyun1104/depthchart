@@ -7,7 +7,7 @@ from typing import Literal
 import yaml
 
 
-SpecMethod = Literal["off", "nextn", "fastmtp", "dflash", "eagle3"]
+SpecMethod = Literal["off", "mtp", "nextn", "eagle", "eagle3", "fastmtp", "dflash"]
 Quantization = Literal["none", "fp8", "awq", "gptq"]
 
 
@@ -16,7 +16,9 @@ class SweepAxes:
     batch_sizes: tuple[int, ...] = (1, 4, 16, 32, 64, 128)
     hit_rates: tuple[float, ...] = (0.0, 0.3, 0.6, 0.9)
     spec_k: tuple[int, ...] = (0, 1, 2, 3)
-    spec_method: SpecMethod = "eagle3"
+    spec_method: SpecMethod = "mtp"
+    eagle_topk: int = 1
+    num_draft_tokens: int = 4
 
 
 @dataclass(frozen=True)
@@ -26,6 +28,8 @@ class ModelSpec:
     spec_methods: tuple[SpecMethod, ...]
     max_context: int
     quantization: Quantization = "none"
+    reasoning_parser: str | None = None
+    tool_call_parser: str | None = None
 
 
 @dataclass(frozen=True)
@@ -33,9 +37,10 @@ class EngineSpec:
     host: str = "127.0.0.1"
     port: int = 30000
     enable_lmcache: bool = True
-    chunked_prefill: bool = True
+    chunked_prefill_size: int = 8192
+    mem_fraction_static: float = 0.85
     tp_size: int = 1
-    quantization_override: Quantization | None = None
+    gpu_vram_gb: int = 96
 
 
 @dataclass(frozen=True)
@@ -54,9 +59,11 @@ class SweepConfig:
         default_factory=lambda: ModelSpec(
             name="exaone-4.5-33b-fp8",
             hf_id="LGAI-EXAONE/EXAONE-4.5-33B-FP8",
-            spec_methods=("eagle3",),
+            spec_methods=("mtp", "eagle"),
             max_context=32768,
             quantization="fp8",
+            reasoning_parser="qwen3",
+            tool_call_parser="hermes",
         )
     )
     engine: EngineSpec = field(default_factory=EngineSpec)
@@ -70,8 +77,17 @@ def load(path: str | Path) -> SweepConfig:
 
 
 def _from_dict(raw: dict) -> SweepConfig:
-    axes = SweepAxes(**raw.get("axes", {}))
-    model = ModelSpec(**raw["model"])
+    axes_raw = dict(raw.get("axes", {}))
+    for k in ("batch_sizes", "hit_rates", "spec_k"):
+        if k in axes_raw:
+            axes_raw[k] = tuple(axes_raw[k])
+    axes = SweepAxes(**axes_raw)
+
+    model_raw = dict(raw["model"])
+    if "spec_methods" in model_raw:
+        model_raw["spec_methods"] = tuple(model_raw["spec_methods"])
+    model = ModelSpec(**model_raw)
+
     engine = EngineSpec(**raw.get("engine", {}))
     workload = WorkloadSpec(**raw.get("workload", {}))
     results_dir = Path(raw.get("results_dir", "results"))

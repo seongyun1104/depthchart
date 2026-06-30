@@ -2,21 +2,27 @@ axes:
   batch_sizes: [1, 4, 16, 32, 64, 128]
   hit_rates: [0.0, 0.3, 0.6, 0.9]
   spec_k: [0, 1, 2, 3]
-  spec_method: eagle3
+  spec_method: mtp
+  eagle_topk: 1
+  num_draft_tokens: 4
 
 model:
   name: exaone-4.5-33b-fp8
   hf_id: LGAI-EXAONE/EXAONE-4.5-33B-FP8
-  spec_methods: [eagle3]
+  spec_methods: [mtp, eagle]
   max_context: 32768
   quantization: fp8
+  reasoning_parser: qwen3
+  tool_call_parser: hermes
 
 engine:
   host: 127.0.0.1
   port: 30000
   enable_lmcache: true
-  chunked_prefill: true
+  chunked_prefill_size: 8192
+  mem_fraction_static: 0.85
   tp_size: 1
+  gpu_vram_gb: 96
 
 workload:
   prompt_tokens: 2048

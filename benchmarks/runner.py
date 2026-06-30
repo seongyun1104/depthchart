@@ -13,9 +13,9 @@ from benchmarks.sweep_config import SweepConfig, load
 
 async def run_one(cfg: SweepConfig, batch_size: int, hit_rate: float,
                   spec_k: int, spec_method: str) -> RunResult:
-    # TODO(t16-impl): launch SGLang server with (spec_method, spec_k, lmcache),
-    # generate workload with target hit_rate, drive concurrency=batch_size,
-    # collect RequestMetric per request + EngineSnapshot periodically.
+    # TODO(t16-impl): launch SGLang via SGLangServer with (spec_method, spec_k,
+    # lmcache cfg), drive workload at concurrency=batch_size with HitRateController
+    # at target=hit_rate, collect per-request metrics + engine snapshots.
     started = time.time()
     await asyncio.sleep(0)
     ended = time.time()

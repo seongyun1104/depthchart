@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 import random
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from transformers import PreTrainedTokenizerBase
 
@@ -25,14 +25,15 @@ class HitRateController:
     shared_prefix_tokens: int
     tokenizer: PreTrainedTokenizerBase
     seed: int = 0
+    _rng: random.Random = field(init=False)
+    _prefix_bank: list[list[int]] = field(default_factory=list, init=False)
+    _issued: int = field(default=0, init=False)
+    _warm_issued: int = field(default=0, init=False)
 
     def __post_init__(self) -> None:
         assert 0.0 <= self.target_hit_rate <= 1.0
         assert 0 < self.shared_prefix_tokens < self.prompt_tokens
         self._rng = random.Random(self.seed)
-        self._prefix_bank: list[list[int]] = []
-        self._issued = 0
-        self._warm_target = 0
 
     def _new_prefix(self) -> list[int]:
         ids = [self._rng.randint(1000, 30000) for _ in range(self.shared_prefix_tokens)]
@@ -40,15 +41,16 @@ class HitRateController:
         return ids
 
     def _pick_prefix(self) -> tuple[list[int], bool]:
-        if not self._prefix_bank:
-            return self._new_prefix(), False
         self._issued += 1
-        self._warm_target = round(self._issued * self.target_hit_rate)
-        warm_so_far = sum(1 for _ in range(self._issued - 1))  # placeholder counter
-        # honor target rate roughly: if behind quota, reuse; else new
-        if warm_so_far < self._warm_target:
+        if not self._prefix_bank:
+            self._new_prefix()
+            return self._prefix_bank[-1], False
+        target_warm = round(self._issued * self.target_hit_rate)
+        if self._warm_issued < target_warm:
+            self._warm_issued += 1
             return self._rng.choice(self._prefix_bank), True
-        return self._new_prefix(), False
+        self._new_prefix()
+        return self._prefix_bank[-1], False
 
     def next(self) -> Prompt:
         prefix_ids, is_warm = self._pick_prefix()
@@ -62,3 +64,7 @@ class HitRateController:
             shared_prefix_tokens=self.shared_prefix_tokens,
             is_warm=is_warm,
         )
+
+    @property
+    def realized_hit_rate(self) -> float:
+        return self._warm_issued / self._issued if self._issued else 0.0

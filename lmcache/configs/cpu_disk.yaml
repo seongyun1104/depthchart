@@ -1,0 +1,9 @@
+chunk_size: 256
+local_cpu: true
+max_local_cpu_size: 32  # GB
+local_disk: "file:///tmp/lmcache_storage"
+max_local_disk_size: 200  # GB
+remote_url: null
+remote_serde: naive
+save_decode_cache: false
+enable_blending: false
