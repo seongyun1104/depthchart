@@ -1,35 +1,49 @@
 # lmcache
 
-LMCache wiring and hit-rate-controlled workload generation.
+LMCache backend configs + hit-rate-controlled workload generation for the
+vLLM `LMCacheConnectorV1` path.
 
-```
-configs/cpu_only.yaml   HBM + in-process CPU (32 GB)        — Phase 1 main
-configs/cpu_disk.yaml   HBM + CPU (32 GB) + local NVMe (200 GB)  — Falsifier #5
-configs/cpu_redis.yaml  HBM + CPU (16 GB) + local Redis     — Phase 2 / parity
-workload_gen.py         HitRateController — target-hit-rate prompt generator
-```
+## Two backend cases
 
-LMCache is engaged via env var `LMCACHE_CONFIG_FILE` (SGLang has no
-`--lmcache-config` flag). The runner exports it before launching SGLang.
+The lab pins the backend to the shape of KV cache sharing that matters:
 
-## Backend choice trade-off
+| Case | File | When it applies |
+|---|---|---|
+| **CPU DRAM local tier** (single instance) | `configs/cpu_only.yaml` | In-process CPU offload; fastest sharing when one server owns the entire prefix cache and has DRAM headroom. **P1 main.** |
+| **Cross-instance shared tier** (Redis) | `configs/cpu_redis.yaml` | Multiple vLLM instances must share the same KV cache; Redis is the correct remote backend for KV cache sharing. Phase 2 / parity. |
+| Local NVMe (falsifier only) | `configs/cpu_disk.yaml` | Falsifier #5 — measure whether retrieval latency erases prefill-skip gain. |
 
-| backend         | hit latency       | sweep-cell cache persistence | TTFT noise              |
-|-----------------|-------------------|------------------------------|-------------------------|
-| in-process CPU  | ~10-100 μs        | no (cold on restart)         | none (cleanest signal)  |
-| Local NVMe      | ~ms (disk I/O)    | yes                          | adds retrieval latency  |
-| Local Redis     | ~1 ms (UDS/TCP)   | yes                          | adds retrieval latency  |
+## Schema (LMCache `v1/config.py`)
 
-P1 main hypothesis test wants the cleanest TTFT signal → `cpu_only` is the
-default. Falsifier #5 ("retrieval latency erases prefill-skip gain") needs
-a slower tier to surface — that's what `cpu_disk` or `cpu_redis` are for.
+vLLM engages LMCache via `--kv-transfer-config '{"kv_connector":"LMCacheConnectorV1","kv_role":"kv_both"}'`
+and reads its own YAML from `LMCACHE_CONFIG_FILE` (env var exported by
+`scheduler/vllm_runner.py`). Fields used here match
+`_CONFIG_DEFINITIONS` in `lmcache/v1/config.py`:
+
+- `chunk_size: int`
+- `local_cpu: bool`, `max_local_cpu_size: float` (GB)
+- `local_disk: Optional[str]` (e.g. `"file:///tmp/lmcache_storage"`),
+  `max_local_disk_size: float` (GB)
+- `remote_url: Optional[str]` (`"redis://host:port"`)
+- `remote_serde: Optional[str]`
+- `save_decode_cache: bool`, `enable_blending: bool`
+
+## Backend trade-off
+
+| backend         | hit latency       | cross-instance sharing | TTFT noise             |
+|-----------------|-------------------|------------------------|------------------------|
+| in-process CPU  | ~10-100 μs        | no                     | none (cleanest signal) |
+| Local NVMe      | ~ms (disk I/O)    | no                     | adds retrieval latency |
+| Local Redis     | ~1 ms (UDS/TCP)   | yes                    | adds retrieval latency |
+
+P1's main hypothesis test wants the cleanest TTFT signal → `cpu_only` is
+the default. Multi-instance sharing tests use `cpu_redis`.
 
 Remote / multi-node Redis, Mooncake Store, S3, Aerospike, NIXL stay out
-of P1 — they belong to the (excluded) multi-instance track.
+of P1.
 
 ## Hit rate control
 
-Hit rate = fraction of prompts whose shared prefix has already been served
-once in this run. `HitRateController` keeps a prefix bank and decides per
-prompt whether to reuse (warm) or mint a new prefix (cold) to track the
-target rate. Synthetic; ShareGPT replay is a later option.
+`HitRateController.next()` produces prompts whose shared prefix is either
+reused (warm) or freshly minted (cold) so the running warm/total ratio
+tracks `target_hit_rate`. Synthetic; ShareGPT replay is a later option.

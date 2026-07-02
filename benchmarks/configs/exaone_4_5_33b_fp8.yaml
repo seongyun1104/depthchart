@@ -24,6 +24,7 @@ engine:
   mem_fraction_static: 0.85
   tp_size: 1
   gpu_vram_gb: 96
+  kv_cache_dtype: fp8
 
 workload:
   prompt_tokens: 2048

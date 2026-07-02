@@ -40,7 +40,13 @@ class EngineSnapshot:
     hbm_bw_util: float
     running_requests: int
     queued_requests: int
-    lmcache_hit_rate: float
+    workload_hit_rate: float
+    prefix_cache_queries_total: float = 0.0
+    prefix_cache_hits_total: float = 0.0
+    spec_num_drafts_total: float = 0.0
+    spec_num_draft_tokens_total: float = 0.0
+    spec_num_accepted_tokens_total: float = 0.0
+    kv_cache_usage_perc: float = 0.0
 
 
 @dataclass

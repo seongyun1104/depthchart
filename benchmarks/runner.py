@@ -85,6 +85,8 @@ async def _send_one(
 
 
 def _parse_metric(text: str, name: str) -> float:
+    total = 0.0
+    matched = False
     for line in text.splitlines():
         if not line or line.startswith("#"):
             continue
@@ -92,10 +94,11 @@ def _parse_metric(text: str, name: str) -> float:
         if head != name:
             continue
         try:
-            return float(line.rsplit(" ", 1)[1])
+            total += float(line.rsplit(" ", 1)[1])
+            matched = True
         except (ValueError, IndexError):
             continue
-    return 0.0
+    return total if matched else 0.0
 
 
 async def _snapshot(
@@ -112,7 +115,13 @@ async def _snapshot(
         hbm_bw_util=0.0,
         running_requests=int(_parse_metric(text, "vllm:num_requests_running")),
         queued_requests=int(_parse_metric(text, "vllm:num_requests_waiting")),
-        lmcache_hit_rate=controller.realized_hit_rate,
+        workload_hit_rate=controller.realized_hit_rate,
+        prefix_cache_queries_total=_parse_metric(text, "vllm:prefix_cache_queries_total"),
+        prefix_cache_hits_total=_parse_metric(text, "vllm:prefix_cache_hits_total"),
+        spec_num_drafts_total=_parse_metric(text, "vllm:spec_decode_num_drafts_total"),
+        spec_num_draft_tokens_total=_parse_metric(text, "vllm:spec_decode_num_draft_tokens_total"),
+        spec_num_accepted_tokens_total=_parse_metric(text, "vllm:spec_decode_num_accepted_tokens_total"),
+        kv_cache_usage_perc=_parse_metric(text, "vllm:kv_cache_usage_perc"),
     )
 
 
@@ -187,6 +196,7 @@ async def run_one(
         max_model_len=cfg.model.max_context,
         reasoning_parser=cfg.model.reasoning_parser,
         tool_call_parser=cfg.model.tool_call_parser,
+        kv_cache_dtype=cfg.engine.kv_cache_dtype,
     )
 
     async with server as handle:

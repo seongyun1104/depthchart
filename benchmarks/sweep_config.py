@@ -7,9 +7,9 @@ from typing import Literal
 import yaml
 
 
-SpecMethod = Literal["off", "mtp", "nextn", "eagle", "eagle3", "fastmtp", "dflash",
-                     "draft_model"]
-Quantization = Literal["none", "fp8", "awq", "gptq", "nvfp4"]
+SpecMethod = Literal["off", "mtp", "nextn", "eagle", "eagle3", "fastmtp", "dflash"]
+Quantization = Literal["none", "fp8", "awq", "gptq",
+                       "modelopt_fp4", "compressed-tensors"]
 
 
 @dataclass(frozen=True)
@@ -44,6 +44,7 @@ class EngineSpec:
     mem_fraction_static: float = 0.85
     tp_size: int = 1
     gpu_vram_gb: int = 96
+    kv_cache_dtype: str | None = None
 
 
 @dataclass(frozen=True)

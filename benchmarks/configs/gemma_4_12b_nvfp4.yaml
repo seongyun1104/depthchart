@@ -2,16 +2,16 @@ axes:
   batch_sizes: [1, 4, 16, 32]
   hit_rates: [0.0, 0.3, 0.6, 0.9]
   spec_k: [0, 1, 2, 3]
-  spec_method: draft_model
+  spec_method: mtp
   eagle_topk: 1
   num_draft_tokens: 4
 
 model:
   name: gemma-4-12b-nvfp4
   hf_id: AxionML/Gemma-4-12B-NVFP4
-  spec_methods: [draft_model]
+  spec_methods: [mtp]
   max_context: 16384
-  quantization: nvfp4
+  quantization: modelopt_fp4
   reasoning_parser: null
   tool_call_parser: null
   draft_model: google/gemma-4-12B-it-assistant
@@ -25,6 +25,7 @@ engine:
   mem_fraction_static: 0.85
   tp_size: 1
   gpu_vram_gb: 32
+  kv_cache_dtype: fp8
 
 workload:
   prompt_tokens: 2048

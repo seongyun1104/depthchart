@@ -21,13 +21,6 @@ class ServerHandle:
 
 
 class VLLMServer:
-    """Owns the lifecycle of one vLLM OpenAI-compatible server configured for
-    a single (model, spec, lmcache) combination. One server per sweep cell.
-
-    Mirrors SGLangServer's lifecycle contract so ``benchmarks.runner.run_one``
-    can swap engines without other changes.
-    """
-
     def __init__(
         self,
         hf_id: str,
@@ -41,6 +34,7 @@ class VLLMServer:
         max_model_len: int | None = None,
         reasoning_parser: str | None = None,
         tool_call_parser: str | None = None,
+        kv_cache_dtype: str | None = None,
         log_dir: Path = Path("runs"),
     ):
         self.hf_id = hf_id
@@ -54,6 +48,7 @@ class VLLMServer:
         self.max_model_len = max_model_len
         self.reasoning_parser = reasoning_parser
         self.tool_call_parser = tool_call_parser
+        self.kv_cache_dtype = kv_cache_dtype
         self.log_dir = log_dir
         self._proc: subprocess.Popen | None = None
         self._log_fp = None
@@ -70,6 +65,8 @@ class VLLMServer:
         ]
         if self.quantization and self.quantization != "none":
             cmd += ["--quantization", self.quantization]
+        if self.kv_cache_dtype:
+            cmd += ["--kv-cache-dtype", self.kv_cache_dtype]
         if self.max_model_len is not None:
             cmd += ["--max-model-len", str(self.max_model_len)]
         if self.reasoning_parser:

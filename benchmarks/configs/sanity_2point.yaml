@@ -1,20 +1,19 @@
 axes:
-  batch_sizes: [1, 4, 16, 32, 64, 128]
-  hit_rates: [0.0, 0.3, 0.6, 0.9]
-  spec_k: [0, 1, 2, 3]
+  batch_sizes: [32]
+  hit_rates: [0.0, 0.9]
+  spec_k: [2]
   spec_method: mtp
   eagle_topk: 1
   num_draft_tokens: 4
 
 model:
-  name: gemma-4-31b-qat-fp8
-  hf_id: prithivMLmods/gemma-4-31B-it-qat-FP8
+  name: exaone-4.5-33b-fp8
+  hf_id: LGAI-EXAONE/EXAONE-4.5-33B-FP8
   spec_methods: [mtp]
   max_context: 32768
   quantization: fp8
-  reasoning_parser: null
-  tool_call_parser: null
-  draft_model: google/gemma-4-31B-it-assistant
+  reasoning_parser: qwen3
+  tool_call_parser: hermes
 
 engine:
   host: 127.0.0.1
@@ -30,8 +29,8 @@ engine:
 workload:
   prompt_tokens: 2048
   completion_tokens: 256
-  concurrency: 128
+  concurrency: 32
   duration_s: 60
   warmup_s: 10
 
-results_dir: results
+results_dir: results/sanity_2point

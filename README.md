@@ -137,14 +137,37 @@ Notes:
   `chunked_prefill_size` from 4096 → 2048 or lower
   `gpu_memory_utilization` to 0.80.
 
+## Sanity 2-point (run this before the full sweep)
+
+Before spending a full sweep (B × hit × K = 6×4×4 = 96 cells) on any
+model, run the 2-cell sanity to check the hypothesis is even alive on
+the target box:
+
+```
+python -m benchmarks.runner \
+  --config benchmarks/configs/sanity_2point.yaml \
+  --out results/sanity_2point
+```
+
+Fixed at `B=32, K=2`, sweeping only `hit ∈ {0.0, 0.9}`. Verdict:
+
+- **Survive** — `hit=0.9` beats `hit=0.0` on throughput or ITL by
+  a **≥ 10 %** margin (bootstrap 95 % CI clears 0). LMCache is
+  actually converting prefill compute into decode slack that MTP
+  verify can absorb. Full sweep is worth running.
+- **Falsify** — margin is **< 5 %** or CI includes 0. Falsifier #2
+  wins (decode is compute-bound at high B or slack is absent).
+  Full sweep is a waste until the hypothesis is re-scoped.
+- **Ambiguous** — margin between 5 % and 10 %. Re-run for a second
+  seed before deciding.
+
 ## Branch topology
 
 - `main` — merge target. All infra + all three configs live here.
 - `dev-exaone4.5` — same-graph MTP head track. Owns the vLLM engine
   migration, `run_one` implementation, and LMCache wiring.
-- `dev-gemma4` — external-drafter track. Extends `speculative.adapter`
-  with `for_gemma_4()` and `SpecConfig(method="draft_model")`, adds
-  Gemma configs, and documents the RTX 5090 32 GB budget.
+- `dev-gemma4` — external-drafter track. Adds Gemma 4 configs and
+  the RTX 5090 32 GB budget.
 
 ## Falsifiers (do not discard before checking)
 
