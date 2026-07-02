@@ -7,8 +7,9 @@ from typing import Literal
 import yaml
 
 
-SpecMethod = Literal["off", "mtp", "nextn", "eagle", "eagle3", "fastmtp", "dflash"]
-Quantization = Literal["none", "fp8", "awq", "gptq"]
+SpecMethod = Literal["off", "mtp", "nextn", "eagle", "eagle3", "fastmtp", "dflash",
+                     "draft_model"]
+Quantization = Literal["none", "fp8", "awq", "gptq", "nvfp4"]
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,7 @@ class ModelSpec:
     quantization: Quantization = "none"
     reasoning_parser: str | None = None
     tool_call_parser: str | None = None
+    draft_model: str | None = None
 
 
 @dataclass(frozen=True)

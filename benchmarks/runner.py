@@ -15,7 +15,7 @@ from benchmarks.metrics import EngineSnapshot, RequestMetric, RunResult, write_p
 from benchmarks.sweep_config import SweepConfig, load
 from lmcache.workload_gen import HitRateController, Prompt
 from scheduler.vllm_runner import VLLMServer
-from speculative.adapter import SpecConfig, for_exaone_45
+from speculative.adapter import SpecConfig, for_exaone_45, for_gemma_4
 
 
 async def _send_one(
@@ -166,6 +166,8 @@ async def run_one(
 ) -> RunResult:
     if spec_method == "off" or spec_k == 0:
         spec = SpecConfig(method="off", num_steps=0)
+    elif cfg.model.draft_model:
+        spec = for_gemma_4(spec_k, cfg.model.draft_model)
     else:
         spec = for_exaone_45(spec_k, spec_method)  # type: ignore[arg-type]
 

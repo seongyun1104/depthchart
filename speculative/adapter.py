@@ -3,7 +3,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal
 
-SpecMethod = Literal["off", "mtp", "nextn", "eagle", "eagle3", "fastmtp", "dflash"]
+SpecMethod = Literal["off", "mtp", "nextn", "eagle", "eagle3", "fastmtp", "dflash",
+                     "draft_model"]
 
 
 @dataclass(frozen=True)
@@ -30,6 +31,16 @@ class SpecConfig:
     def to_vllm_speculative_config(self) -> dict | None:
         if self.method == "off" or self.num_steps == 0:
             return None
+        # External draft models (e.g. Gemma 4's ``*-it-assistant`` checkpoint)
+        # are passed as ``model:`` alone; vLLM infers the draft-model path.
+        # Same-model heads (EXAONE 4.5 native MTP, EAGLE) use ``method:``.
+        if self.method == "draft_model":
+            if not self.draft_model:
+                raise ValueError("draft_model method requires draft_model path")
+            return {
+                "model": self.draft_model,
+                "num_speculative_tokens": self.num_steps,
+            }
         cfg: dict = {
             "method": _to_vllm_method(self.method),
             "num_speculative_tokens": self.num_steps,
@@ -71,4 +82,18 @@ def for_exaone_45(k: int, method: SpecMethod = "mtp") -> SpecConfig:
         num_steps=k,
         eagle_topk=1,
         num_draft_tokens=max(4, k + 1),
+    )
+
+
+def for_gemma_4(k: int, draft_model: str) -> SpecConfig:
+    # Gemma 4 uses an external smaller *-it-assistant checkpoint as the MTP
+    # draft model rather than a same-graph head.
+    if k <= 0:
+        return SpecConfig(method="off", num_steps=0)
+    return SpecConfig(
+        method="draft_model",
+        num_steps=k,
+        eagle_topk=1,
+        num_draft_tokens=max(4, k + 1),
+        draft_model=draft_model,
     )
