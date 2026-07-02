@@ -21,8 +21,8 @@ LMCache is expected to flatten MTP's batch-size scaling curve.
 
 ```
 speculative/   MTP / NEXTN / EAGLE / DFlash adapters; acceptance hooks
-lmcache/       LMCache configs (cpu_only, cpu_disk); hit-rate workload gen
-scheduler/     SGLang scheduler analysis + patch experiments
+lmcache/       LMCache configs (cpu_only, cpu_disk, cpu_redis); hit-rate workload gen
+scheduler/     vllm_runner.py (primary); sglang_runner.py kept as reference
 benchmarks/    sweep harness (B × hit_rate × K), metric collector
 kv-transfer/   (out of P1 scope; placeholder for future)
 papers/        REFERENCES.md — citations and gap mapping
@@ -30,15 +30,31 @@ papers/        REFERENCES.md — citations and gap mapping
 
 ## Stack
 
-- Engine: SGLang (`--enable-lmcache`, native MTP head served via `MTP` algo;
-  EAGLE / NEXTN kept as fallback sweep options)
+- Engine: vLLM OpenAI-compatible server
+  (`--speculative-config '{"method":"mtp","num_speculative_tokens":K}'`,
+  `--kv-transfer-config '{"kv_connector":"LMCacheConnectorV1","kv_role":"kv_both"}'`,
+  `--enable-chunked-prefill`, `--quantization fp8`, TP=1)
 - Model: `LGAI-EXAONE/EXAONE-4.5-33B-FP8` (VLM, served text-only)
-- Spec head: EXAONE 4.5 has a native MTP head (1 MTP layer on top of 64
-  main layers). No separate draft checkpoint needed.
+- Spec head: EXAONE 4.5 ships a native MTP head (1 MTP layer atop 64 main
+  layers); vLLM routes it through the EAGLE proposer path when
+  `method: "mtp"` is set. No separate draft checkpoint needed.
 - KV layer: LMCache via `LMCACHE_CONFIG_FILE` env var
   (Phase 1 = HBM + CPU; Phase 2 = HBM + CPU + local NVMe)
-- Bench: built on LMBench (extended with spec-aware metrics)
+- Bench: async harness in `benchmarks/runner.py`
+  (streaming `/v1/chat/completions` + Prometheus `/metrics` polling)
 - GPU: single H100 96 GB (TP=1)
+
+## Fixed workload knobs
+
+The harness pins these on every request to keep throughput comparable
+across (B, hit_rate, K) cells:
+
+- `chat_template_kwargs.enable_thinking: false` — EXAONE 4.5's hybrid
+  reasoning template inflates completion length ~21% when thinking is
+  on, which contaminates the throughput signal.
+- `ignore_eos: true` + `max_tokens: 256` — normalise decode length so
+  cells are comparable at fixed output cost.
+- `temperature: 0.0` — greedy decode; verify path determinism.
 
 ## Sweep design
 
@@ -55,11 +71,11 @@ papers/        REFERENCES.md — citations and gap mapping
 Metrics: TTFT, ITL, throughput, GPU compute util, memory bandwidth util,
 MTP acceptance rate per (K, B), prefill-skip slack vs verify cost ratio.
 
-## Memory budget (mem_fraction_static = 0.85)
+## Memory budget (gpu_memory_utilization = 0.85)
 
 ```
-mem_fraction_static = (weights + KV pool) / GPU capacity
-SGLang rule of thumb: leave 5-8 GB for activations + CUDA graphs.
+gpu_memory_utilization = (weights + KV pool) / GPU capacity
+vLLM rule of thumb: leave 5-8 GB for activations + CUDA graphs.
 
 96 GB × 0.85 = 81.6 GB  (weights + KV pool budget)
 weights ≈ 33 GB  →  KV pool ≈ 48.6 GB
@@ -68,8 +84,8 @@ reserve = 96 - 81.6 = 14.4 GB
 
 The 14.4 GB reserve is conservative (rule of thumb is 5-8 GB) to absorb
 MTP draft-tree activation spikes and LMCache transfer buffers. After the
-first sanity run, inspect `available_gpu_mem` in the SGLang log and tune
-up toward 0.90 if there is slack.
+first sanity run, inspect available/free GPU memory reported by vLLM at
+startup and tune up toward 0.90 if there is slack.
 
 ## Falsifiers (do not discard before checking)
 

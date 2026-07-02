@@ -35,8 +35,9 @@ class ModelSpec:
 @dataclass(frozen=True)
 class EngineSpec:
     host: str = "127.0.0.1"
-    port: int = 30000
+    port: int = 8000
     enable_lmcache: bool = True
+    lmcache_config: str | None = None
     chunked_prefill_size: int = 8192
     mem_fraction_static: float = 0.85
     tp_size: int = 1
