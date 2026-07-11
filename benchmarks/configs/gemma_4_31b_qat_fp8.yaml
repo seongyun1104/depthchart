@@ -14,7 +14,7 @@ model:
   quantization: fp8
   reasoning_parser: null
   tool_call_parser: null
-  draft_model: google/gemma-4-31B-it-assistant
+  draft_model: google/gemma-4-31B-it-qat-q4_0-unquantized-assistant
 
 engine:
   host: 127.0.0.1

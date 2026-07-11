@@ -12,7 +12,7 @@ differ only in the model / drafter / GPU-budget triple:
 |----------------------|-----------------------------------------|----------------------------------------|------------------|-----------------|
 | Same-graph MTP head  | `LGAI-EXAONE/EXAONE-4.5-33B-FP8`        | (native in-graph MTP layer)            | H100 96 GB       | `dev-exaone4.5` |
 | External MTP drafter | `AxionML/Gemma-4-12B-NVFP4`             | `google/gemma-4-12B-it-assistant`      | RTX 5090 32 GB   | `dev-gemma4`    |
-| External MTP drafter | `prithivMLmods/gemma-4-31B-it-qat-FP8`  | `google/gemma-4-31B-it-assistant`      | H100 96 GB       | `dev-gemma4`    |
+| External MTP drafter | `prithivMLmods/gemma-4-31B-it-qat-FP8`  | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` | H100 96 GB | `dev-gemma4` |
 
 Multi-instance, PD-disaggregation, and llm-d remain out of scope.
 
@@ -85,7 +85,7 @@ Each track uses its own YAML. Cell counts are trimmed to fit VRAM.
 | hit rate     | 0%, 30%, 60%, 90%                 | 0%, 30%, 60%, 90%                 | 0%, 30%, 60%, 90%                 |
 | spec K       | 0 (off), 1, 2, 3                  | 0 (off), 1, 2, 3                  | 0 (off), 1, 2, 3                  |
 | spec method  | `mtp` (same-graph)                | `draft_model` (external)          | `draft_model` (external)          |
-| drafter      | (native)                          | `google/gemma-4-12B-it-assistant` | `google/gemma-4-31B-it-assistant` |
+| drafter      | (native)                          | `google/gemma-4-12B-it-assistant` | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` |
 | max_context  | 32768                             | 16384                             | 32768                             |
 
 Metrics: TTFT, ITL, throughput, MTP acceptance rate per (K, B),
@@ -104,7 +104,7 @@ MTP head shares the same graph; no separate drafter VRAM
 reserve = 96 - 81.6 = 14.4 GB
 ```
 
-**Gemma 4 31B QAT-FP8** + `gemma-4-31B-it-assistant` drafter:
+**Gemma 4 31B QAT-FP8** + `gemma-4-31B-it-qat-q4_0-unquantized-assistant` drafter:
 
 ```
 96 GB × 0.85 = 81.6 GB  (weights + KV pool budget)
