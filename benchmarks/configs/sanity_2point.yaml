@@ -18,8 +18,6 @@ model:
 engine:
   host: 127.0.0.1
   port: 8000
-  enable_lmcache: true
-  lmcache_config: lmcache/configs/cpu_only.yaml
   chunked_prefill_size: 8192
   mem_fraction_static: 0.85
   tp_size: 1

@@ -19,6 +19,7 @@ model:
 engine:
   host: 127.0.0.1
   port: 8000
+  lmcache_config: lmcache/configs/cpu_only.yaml
   chunked_prefill_size: 8192
   mem_fraction_static: 0.85
   tp_size: 1
@@ -29,7 +30,7 @@ workload:
   completion_tokens: 256
   duration_s: 120
   warmup_s: 30
-  hit_rate: 0.0
-  hit_source: apc
+  hit_rate: 0.9
+  hit_source: lmcache
 
-results_dir: results
+results_dir: results/lmcache_arm

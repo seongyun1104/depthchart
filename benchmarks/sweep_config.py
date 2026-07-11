@@ -39,7 +39,6 @@ class ModelSpec:
 class EngineSpec:
     host: str = "127.0.0.1"
     port: int = 8000
-    enable_lmcache: bool = True
     lmcache_config: str | None = None
     chunked_prefill_size: int = 8192
     mem_fraction_static: float = 0.85
@@ -83,6 +82,7 @@ def load(path: str | Path) -> SweepConfig:
 
 _LEGACY_AXIS_KEYS = ("hit_rates", "hit_sources")
 _LEGACY_WORKLOAD_KEYS = ("prompt_tokens", "concurrency")
+_LEGACY_ENGINE_KEYS = ("enable_lmcache",)
 
 
 def _from_dict(raw: dict) -> SweepConfig:
@@ -103,7 +103,15 @@ def _from_dict(raw: dict) -> SweepConfig:
         model_raw["spec_methods"] = tuple(model_raw["spec_methods"])
     model = ModelSpec(**model_raw)
 
-    engine = EngineSpec(**raw.get("engine", {}))
+    engine_raw = dict(raw.get("engine", {}))
+    legacy_eng = [k for k in _LEGACY_ENGINE_KEYS if k in engine_raw]
+    if legacy_eng:
+        raise ValueError(
+            f"engine.{','.join(legacy_eng)} removed in P1.6 — LMCache is enabled by "
+            f"providing engine.lmcache_config and setting workload.hit_source='lmcache'. "
+            f"Move to a separate _lmcache.yaml overlay."
+        )
+    engine = EngineSpec(**engine_raw)
 
     workload_raw = dict(raw.get("workload", {}))
     legacy_wl = [k for k in _LEGACY_WORKLOAD_KEYS if k in workload_raw]
