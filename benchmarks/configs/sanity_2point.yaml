@@ -1,8 +1,7 @@
 axes:
   batch_sizes: [32]
-  hit_rates: [0.0, 0.9]
-  spec_k: [2]
-  hit_sources: [apc, lmcache]
+  ctx_tokens: [256, 2048]
+  spec_k: [0, 3]
   spec_method: mtp
   eagle_topk: 1
   num_draft_tokens: 4
@@ -28,10 +27,10 @@ engine:
   kv_cache_dtype: fp8
 
 workload:
-  prompt_tokens: 2048
   completion_tokens: 256
-  concurrency: 32
   duration_s: 60
   warmup_s: 10
+  hit_rate: 0.0
+  hit_source: apc
 
 results_dir: results/sanity_2point

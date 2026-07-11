@@ -171,11 +171,13 @@ async def _poller(
 async def run_one(
     cfg: SweepConfig,
     batch_size: int,
-    hit_rate: float,
+    ctx_tokens: int,
     spec_k: int,
     spec_method: str,
-    hit_source: str = "apc",
 ) -> RunResult:
+    hit_rate = cfg.workload.hit_rate
+    hit_source = cfg.workload.hit_source
+
     if spec_method == "off" or spec_k == 0:
         spec = SpecConfig(method="off", num_steps=0)
     elif cfg.model.draft_model:
@@ -196,8 +198,8 @@ async def run_one(
 
     if hit_source == "lmcache" and lmcache_cfg is None:
         raise ValueError(
-            "hit_source='lmcache' requires engine.lmcache_config to be set; "
-            "found None. Provide a LMCache YAML or restrict the sweep to hit_sources=['apc']."
+            "workload.hit_source='lmcache' requires engine.lmcache_config to be set; "
+            "found None. Provide a LMCache YAML or set workload.hit_source='apc'."
         )
 
     server = VLLMServer(
@@ -220,8 +222,8 @@ async def run_one(
         tokenizer = AutoTokenizer.from_pretrained(cfg.model.hf_id, trust_remote_code=True)
         controller = HitRateController(
             target_hit_rate=hit_rate,
-            prompt_tokens=cfg.workload.prompt_tokens,
-            shared_prefix_tokens=cfg.workload.prompt_tokens // 2,
+            prompt_tokens=ctx_tokens,
+            shared_prefix_tokens=ctx_tokens // 2,
             tokenizer=tokenizer,
         )
         requests: list[RequestMetric] = []
@@ -254,6 +256,7 @@ async def run_one(
     return RunResult(
         run_id=uuid.uuid4().hex[:12],
         batch_size=batch_size,
+        ctx_tokens=ctx_tokens,
         hit_rate_target=hit_rate,
         spec_k=spec_k,
         spec_method=spec_method,
@@ -274,13 +277,12 @@ async def sweep(cfg: SweepConfig) -> list[RunResult]:
     results: list[RunResult] = []
     grid = itertools.product(
         cfg.axes.batch_sizes,
-        cfg.axes.hit_rates,
+        cfg.axes.ctx_tokens,
         cfg.axes.spec_k,
-        cfg.axes.hit_sources,
     )
-    for b, h, k, hit_source in grid:
+    for b, ctx, k in grid:
         method = "off" if k == 0 else cfg.axes.spec_method
-        result = await run_one(cfg, b, h, k, method, hit_source)
+        result = await run_one(cfg, b, ctx, k, method)
         results.append(result)
     return results
 

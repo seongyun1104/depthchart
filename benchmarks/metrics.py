@@ -55,6 +55,7 @@ class EngineSnapshot:
 class RunResult:
     run_id: str
     batch_size: int
+    ctx_tokens: int
     hit_rate_target: float
     spec_k: int
     spec_method: str
@@ -90,6 +91,7 @@ class RunResult:
             rows.append({
                 "run_id": self.run_id,
                 "batch_size": self.batch_size,
+                "ctx_tokens": self.ctx_tokens,
                 "hit_rate_target": self.hit_rate_target,
                 "spec_k": self.spec_k,
                 "spec_method": self.spec_method,

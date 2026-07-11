@@ -99,40 +99,24 @@ Each track uses its own YAML. Cell counts are trimmed to fit VRAM.
 
 | variable     | EXAONE 4.5 33B FP8 / H100         | Gemma 4 12B NVFP4 / RTX 5090      | Gemma 4 31B QAT-FP8 / H100        |
 |--------------|-----------------------------------|-----------------------------------|-----------------------------------|
-| batch size B | 1, 4, 16, 32, 64, 128             | 1, 4, 16, 32                      | 1, 4, 16, 32, 64, 128             |
-| hit rate     | 0%, 30%, 60%, 90%                 | 0%, 30%, 60%, 90%                 | 0%, 30%, 60%, 90%                 |
-| hit source   | `apc`, `lmcache`                  | `apc`, `lmcache`                  | `apc`, `lmcache`                  |
+| batch size B | 1, 4, 16, 32, 64, 128, 192, 256   | 1, 4, 16, 32                      | 1, 4, 16, 32, 64, 128, 192, 256   |
+| ctx tokens   | 256, 512, 1024, 2048, 4096        | 256, 512, 1024, 2048              | 256, 512, 1024, 2048, 4096        |
 | spec K       | 0 (ref), 1, 2, 3                  | 0 (ref), 1, 2, 3                  | 0 (ref), 1, 2, 3                  |
 | spec method  | `mtp` (same-graph)                | `mtp` (external drafter)          | `mtp` (external drafter)          |
 | drafter      | (native)                          | `google/gemma-4-12B-it-assistant` | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` |
 | max_context  | 32768                             | 16384                             | 32768                             |
 
-Metrics: TTFT, ITL, throughput, MTP acceptance rate per (K, B),
-prefill-skip slack vs verify cost ratio. Covariates recorded per cell:
-`kv_pool_tokens` (parsed from the vLLM `GPU KV cache size: N tokens`
-line), `prefill_share` (Prometheus prompt/generation token delta over
-the measurement window), `drafter_loaded` (True for K ≥ 1),
-`hit_source`, `enable_prefix_caching`, `enable_lmcache`.
+`hit_rate` and `hit_source` are workload covariates (recorded per cell,
+not swept). Default `hit_rate=0.0, hit_source=apc`. LMCache runs live
+in a separate config (see `lmcache/`) — the DSD-core sweep is APC-only.
 
-### Hit-source arms (why `hit_source` is an axis, not a knob)
-
-`enable_prefix_caching` and LMCache both produce prefix-cache hits, and
-if both are on the workload's repeated prefix is served from HBM
-before the LMCache retrieval path is even exercised — the `hit_rate`
-axis then measures native APC, not LMCache, and Falsifier #5 becomes
-un-testable. The sweep splits hit provenance explicitly:
-
-- **Arm `apc`** — native `--enable-prefix-caching` on, LMCache off. Hits
-  come from HBM. Measures the *mechanism upper bound*: how much decode
-  slack does prefill-skip create when the transfer cost is zero.
-- **Arm `lmcache`** — native prefix caching off
-  (`--no-enable-prefix-caching`), LMCache on with the configured
-  `cpu_only` / `cpu_disk` backend. Hits come from CPU/NVMe. The gap
-  vs. the `apc` arm at the same `(B, hit_rate, K)` cell is the direct
-  cost of LMCache retrieval — the number Falsifier #5 needs.
-
-The sanity 2-point therefore expands to 4 cells (2 hit rates × 2 arms
-at fixed `B=32, K=2`).
+Metrics: TTFT, ITL, throughput, MTP acceptance rate per (K, B, ctx).
+Covariates recorded per cell: `ctx_tokens`, `hit_rate_target`,
+`hit_source`, `kv_pool_tokens` (parsed from the vLLM
+`GPU KV cache size: N tokens` line), `drafter_loaded` (True for K ≥ 1),
+`spec_method_logged`, `enable_prefix_caching`, `enable_lmcache`,
+`prefill_share` (Prometheus prompt/generation token delta over the
+measurement window).
 
 ### K=0 semantics and the DSD baseline
 
@@ -214,9 +198,9 @@ Notes:
 
 ## Sanity 2-point (run this before the full sweep)
 
-Before spending a full sweep on any model (B × hit × K × arm = 6×4×4×2
-= 192 cells at the widest), run the 4-cell sanity to check the
-hypothesis is even alive on the target box:
+Before spending a full sweep on any model (B × ctx × K), run the 4-cell
+sanity to check whether the (B, ctx) K controller thesis is alive on
+the target box:
 
 ```
 python -m benchmarks.runner \
@@ -224,27 +208,24 @@ python -m benchmarks.runner \
   --out results/sanity_2point
 ```
 
-Fixed at `B=32, K=2`, sweeping `hit ∈ {0.0, 0.9}` × `hit_source ∈
-{apc, lmcache}`. Verdict is read off the `apc` arm first (mechanism
-upper bound), then the `lmcache` arm (system upper bound after
-retrieval cost):
+Fixed at `B=32`, sweeping `ctx ∈ {256, 2048}` × `K ∈ {0, 3}`. Verdict:
 
-- **Survive (mechanism)** — on the `apc` arm, `hit=0.9` beats
-  `hit=0.0` on throughput or ITL by a **≥ 10 %** margin (bootstrap
-  95 % CI clears 0). Prefill compute is genuinely convertible into
-  decode slack that MTP verify absorbs. Full sweep is worth running.
-- **Falsify (mechanism)** — `apc` arm margin **< 5 %** or CI includes
-  0. Before declaring the hypothesis dead, check `prefill_share` in
-  the `hit=0.0, apc` cell (Falsifier #7): if it is already low, the
-  lever is small, not absent — re-run with larger `prompt_tokens`.
-  Otherwise Falsifier #2 (decode compute-bound) wins.
-- **Ambiguous (mechanism)** — margin between 5 % and 10 %. Re-run for
-  a second seed before deciding.
-- **System gap** — regardless of the mechanism verdict, compare
-  `apc` vs `lmcache` at `hit=0.9`. The delta is the LMCache retrieval
-  cost (Falsifier #5). If the `lmcache` arm loses more than ~30 % of
-  the `apc` arm's gain over `hit=0.0`, the "LMCache × MTP" claim is
-  compromised even when the mechanism itself is real.
+- **Survive** — at `ctx=2048`, `K=3` beats `K=0` on throughput or TPOT
+  by a **≥ 10 %** margin (bootstrap 95 % CI clears 0). KV-read
+  amortization keeps K > 0 optimal at long context — the mechanism this
+  lab studies. Full sweep is worth running.
+- **Falsify** — `K=3` margin at `ctx=2048` is **< 5 %** or CI includes
+  0. Before declaring the mechanism dead, verify `drafter_loaded=True`
+  and `spec_method_logged=='mtp'` in the recorded cells: a routing
+  regression or drafter mis-alignment (Falsifier #6) can hide the
+  mechanism before the mechanism itself is at fault.
+- **Ambiguous** — margin between 5 % and 10 %. Re-run for a second seed
+  before deciding.
+- **Short-ctx cross-check** — at `ctx=256`, `K=3` should collapse
+  toward the batch-only crossover behavior (small or no gain vs `K=0`
+  at `B=32`). If `K=3` still wins at short ctx, the sanity is too
+  easy — pick a batch closer to the batch-only crossover before drawing
+  conclusions about the ctx-axis mechanism.
 
 ## Branch topology
 

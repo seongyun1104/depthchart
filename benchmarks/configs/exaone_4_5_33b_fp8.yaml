@@ -1,8 +1,7 @@
 axes:
-  batch_sizes: [1, 4, 16, 32, 64, 128]
-  hit_rates: [0.0, 0.3, 0.6, 0.9]
+  batch_sizes: [1, 4, 16, 32, 64, 128, 192, 256]
+  ctx_tokens: [256, 512, 1024, 2048, 4096]
   spec_k: [0, 1, 2, 3]
-  hit_sources: [apc, lmcache]
   spec_method: mtp
   eagle_topk: 1
   num_draft_tokens: 4
@@ -28,10 +27,10 @@ engine:
   kv_cache_dtype: fp8
 
 workload:
-  prompt_tokens: 2048
   completion_tokens: 256
-  concurrency: 128
   duration_s: 60
   warmup_s: 10
+  hit_rate: 0.0
+  hit_source: apc
 
 results_dir: results
