@@ -51,8 +51,8 @@ class EngineSpec:
 @dataclass(frozen=True)
 class WorkloadSpec:
     completion_tokens: int = 256
-    duration_s: int = 60
-    warmup_s: int = 10
+    duration_s: int = 120
+    warmup_s: int = 30
     hit_rate: float = 0.0
     hit_source: HitSource = "apc"
 

@@ -70,15 +70,29 @@ class RunResult:
     enable_prefix_caching: bool = True
     enable_lmcache: bool = False
 
+    def _window_snapshots(self) -> list[EngineSnapshot]:
+        return [s for s in self.engine_snapshots
+                if self.started_ts <= s.ts <= self.ended_ts]
+
     def throughput_tok_s(self) -> float:
+        window = self._window_snapshots()
+        if len(window) < 2:
+            return 0.0
+        first, last = window[0], window[-1]
+        d_gen = max(last.generation_tokens_total - first.generation_tokens_total, 0.0)
+        wall = max(last.ts - first.ts, 1e-9)
+        return d_gen / wall
+
+    def throughput_tok_s_client(self) -> float:
         total = sum(r.completion_tokens for r in self.requests)
         wall = max(self.ended_ts - self.started_ts, 1e-9)
         return total / wall
 
     def prefill_share(self) -> float:
-        if len(self.engine_snapshots) < 2:
+        window = self._window_snapshots()
+        if len(window) < 2:
             return 0.0
-        first, last = self.engine_snapshots[0], self.engine_snapshots[-1]
+        first, last = window[0], window[-1]
         d_prompt = max(last.prompt_tokens_total - first.prompt_tokens_total, 0.0)
         d_gen = max(last.generation_tokens_total - first.generation_tokens_total, 0.0)
         denom = d_prompt + d_gen
@@ -87,6 +101,8 @@ class RunResult:
     def to_records(self) -> list[dict[str, Any]]:
         rows = []
         prefill_share = self.prefill_share()
+        throughput_counter = self.throughput_tok_s()
+        throughput_client = self.throughput_tok_s_client()
         for r in self.requests:
             rows.append({
                 "run_id": self.run_id,
@@ -102,6 +118,8 @@ class RunResult:
                 "enable_prefix_caching": self.enable_prefix_caching,
                 "enable_lmcache": self.enable_lmcache,
                 "prefill_share": prefill_share,
+                "throughput_tok_s_counter": throughput_counter,
+                "throughput_tok_s_client": throughput_client,
                 **asdict(r),
                 "ttft_ms": r.ttft_ms,
                 "itl_ms": r.itl_ms,

@@ -29,8 +29,8 @@ engine:
 
 workload:
   completion_tokens: 256
-  duration_s: 60
-  warmup_s: 10
+  duration_s: 120
+  warmup_s: 30
   hit_rate: 0.0
   hit_source: apc
 

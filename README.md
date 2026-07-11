@@ -84,7 +84,7 @@ papers/                REFERENCES.md — citations and gap mapping
 ## Fixed workload knobs
 
 The harness pins these on every request to keep throughput comparable
-across (B, hit_rate, K) cells and across models:
+across (B, ctx, K) cells and across models:
 
 - `chat_template_kwargs.enable_thinking: false` — EXAONE 4.5's hybrid
   reasoning template inflates completion length ~21% when thinking is
@@ -92,6 +92,31 @@ across (B, hit_rate, K) cells and across models:
 - `ignore_eos: true` + `max_tokens: 256` — normalise decode length so
   cells are comparable at fixed output cost.
 - `temperature: 0.0` — greedy decode; verify path determinism.
+
+### Measurement window (canonical protocol)
+
+Two 40s / 45s window-oversight incidents in prior campaigns motivated
+these defaults:
+
+- `warmup_s: 30` — first 30 s discarded so all cells enter steady state
+  (wave-ramp equilibration, prefix-cache warmup, LMCache retrieve
+  path if arm=lmcache) before any tokens are counted.
+- `duration_s: 120` — the post-warmup measurement window. Long enough
+  to average over per-step scheduler jitter observed in the DSD
+  boundary probes (§ MTP × DSD probe: c=192–256 per-step scheduled
+  requests oscillate around the tier boundary).
+- Throughput: **Prometheus counter delta is canonical.**
+  `RunResult.throughput_tok_s()` returns
+  `Δ(vllm:generation_tokens_total) / Δwindow` over the snapshots that
+  fall inside `[started_ts, ended_ts]`. Client-side per-request
+  completion sums are still recorded as `throughput_tok_s_client()`
+  for cross-check; when the two disagree, the counter wins and the
+  gap flags an in-flight tail at window close.
+- Acceptance rate: `Δ(vllm:spec_decode_num_accepted_tokens_total) /
+  Δ(vllm:spec_decode_num_draft_tokens_total)` on the same snapshots.
+- Preempts / KV usage / running queue depth: sampled by the
+  Prometheus poller (`interval_s=5.0`) as pressure covariates for the
+  overload branch of the K controller.
 
 ## Sweep design
 
