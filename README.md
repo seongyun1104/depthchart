@@ -8,11 +8,11 @@ Single-GPU experimentation lab for the **(B, ctx) context-aware K controller**:
 `speculative/adapter.py`, `benchmarks/runner.py`) is shared. The tracks
 differ only in the model / drafter / GPU-budget triple:
 
-| Track                | Main model                              | Drafter                                | GPU target       | Status                                             |
-|----------------------|-----------------------------------------|----------------------------------------|------------------|----------------------------------------------------|
-| Same-graph MTP head  | `LGAI-EXAONE/EXAONE-4.5-33B-FP8`        | (native in-graph MTP layer)            | H100 96 GB       | deferred (drafter MAL ~1.5, low detection power)   |
-| External MTP drafter | `AxionML/Gemma-4-12B-NVFP4`             | `google/gemma-4-12B-it-assistant`      | RTX 5090 32 GB   | secondary                                          |
-| External MTP drafter | `prithivMLmods/gemma-4-31B-it-qat-FP8`  | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` | H100 96 GB | primary (campaign)                                 |
+| Track                | Main model                              | Drafter                                | GPU target       | Status                    |
+|----------------------|-----------------------------------------|----------------------------------------|------------------|---------------------------|
+| Same-graph MTP head  | `LGAI-EXAONE/EXAONE-4.5-33B-FP8`        | (native in-graph MTP layer)            | H100 96 GB       | deferred (drafter MAL ~1.5, low detection power) |
+| External MTP drafter | `AxionML/Gemma-4-12B-NVFP4`             | `google/gemma-4-12B-it-assistant`      | RTX 5090 32 GB   | secondary                 |
+| External MTP drafter | `prithivMLmods/gemma-4-31B-it-qat-FP8`  | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` | H100 96 GB | primary (campaign) |
 
 Multi-instance, PD-disaggregation, and llm-d remain out of scope.
 LMCache is demoted to a capacity track (orthogonal to the DSD core);
@@ -62,11 +62,20 @@ papers/                REFERENCES.md — citations and gap mapping
     — vLLM routes through the EAGLE proposer path against the model's
     own MTP layer.
   - **External MTP drafter** (Gemma 4):
-    `'{"model":"google/gemma-4-<size>-it-assistant","num_speculative_tokens":K}'`
-    — no `method:` field; vLLM infers the draft-model path.
+    `'{"method":"mtp","model":"google/gemma-4-<size>-it-assistant","num_speculative_tokens":K}'`
+    — `method:"mtp"` is required. Without it, vLLM silently falls back
+    to the generic draft-model path on versions that pre-date the
+    `gemma4_mtp` registration in `MTPModelTypes`; that fallback breaks
+    target/drafter state sharing and changes the physical quantity we
+    measure. `scheduler/vllm_runner.py::_assert_spec_routing()` parses
+    the startup `SpeculativeConfig(method=...)` line and raises if the
+    requested method is not what the engine actually loaded, so a
+    version regression fails fast instead of silently corrupting the
+    sweep.
 - Adapter: `speculative.adapter.for_exaone_45()` /
   `for_gemma_4(k, draft_model)`; both return a `SpecConfig` whose
-  `to_vllm_speculative_config()` produces the correct dict shape.
+  `to_vllm_speculative_config()` produces the correct dict shape
+  (Gemma 4 emits `method` **and** `model` together).
 - KV layer: LMCache via `LMCACHE_CONFIG_FILE` env var
   (Phase 1 = HBM + CPU; Phase 2 = HBM + CPU + local NVMe)
 - Bench: async harness in `benchmarks/runner.py`
@@ -92,13 +101,55 @@ Each track uses its own YAML. Cell counts are trimmed to fit VRAM.
 |--------------|-----------------------------------|-----------------------------------|-----------------------------------|
 | batch size B | 1, 4, 16, 32, 64, 128             | 1, 4, 16, 32                      | 1, 4, 16, 32, 64, 128             |
 | hit rate     | 0%, 30%, 60%, 90%                 | 0%, 30%, 60%, 90%                 | 0%, 30%, 60%, 90%                 |
-| spec K       | 0 (off), 1, 2, 3                  | 0 (off), 1, 2, 3                  | 0 (off), 1, 2, 3                  |
-| spec method  | `mtp` (same-graph)                | `draft_model` (external)          | `draft_model` (external)          |
+| hit source   | `apc`, `lmcache`                  | `apc`, `lmcache`                  | `apc`, `lmcache`                  |
+| spec K       | 0 (ref), 1, 2, 3                  | 0 (ref), 1, 2, 3                  | 0 (ref), 1, 2, 3                  |
+| spec method  | `mtp` (same-graph)                | `mtp` (external drafter)          | `mtp` (external drafter)          |
 | drafter      | (native)                          | `google/gemma-4-12B-it-assistant` | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` |
 | max_context  | 32768                             | 16384                             | 32768                             |
 
 Metrics: TTFT, ITL, throughput, MTP acceptance rate per (K, B),
-prefill-skip slack vs verify cost ratio.
+prefill-skip slack vs verify cost ratio. Covariates recorded per cell:
+`kv_pool_tokens` (parsed from the vLLM `GPU KV cache size: N tokens`
+line), `prefill_share` (Prometheus prompt/generation token delta over
+the measurement window), `drafter_loaded` (True for K ≥ 1),
+`hit_source`, `enable_prefix_caching`, `enable_lmcache`.
+
+### Hit-source arms (why `hit_source` is an axis, not a knob)
+
+`enable_prefix_caching` and LMCache both produce prefix-cache hits, and
+if both are on the workload's repeated prefix is served from HBM
+before the LMCache retrieval path is even exercised — the `hit_rate`
+axis then measures native APC, not LMCache, and Falsifier #5 becomes
+un-testable. The sweep splits hit provenance explicitly:
+
+- **Arm `apc`** — native `--enable-prefix-caching` on, LMCache off. Hits
+  come from HBM. Measures the *mechanism upper bound*: how much decode
+  slack does prefill-skip create when the transfer cost is zero.
+- **Arm `lmcache`** — native prefix caching off
+  (`--no-enable-prefix-caching`), LMCache on with the configured
+  `cpu_only` / `cpu_disk` backend. Hits come from CPU/NVMe. The gap
+  vs. the `apc` arm at the same `(B, hit_rate, K)` cell is the direct
+  cost of LMCache retrieval — the number Falsifier #5 needs.
+
+The sanity 2-point therefore expands to 4 cells (2 hit rates × 2 arms
+at fixed `B=32, K=2`).
+
+### K=0 semantics and the DSD baseline
+
+Note that K=0 in this sweep means *no speculative config emitted* —
+drafter weights are not resident in VRAM. That is not the same as vLLM
+0.24 DSD's `num_speculative_tokens_per_batch_size[...]=0`, which keeps
+the drafter loaded and only skips the draft/verify at scheduling time.
+Consequences for analysis:
+
+- The K=0 cell is a **reference point** (no-spec, no-drafter). It is
+  not the correct baseline for measuring K's marginal cost, because
+  the KV pool size is larger without the drafter weights + drafter KV.
+- The **DSD-portable baseline** for "adding K" is K=1, which has the
+  drafter loaded. Compare K=2, K=3 against K=1, not against K=0.
+- To make the pool-size confound auditable ex post, every cell records
+  `kv_pool_tokens` and `drafter_loaded`; the per-cell delta is a
+  covariate the analysis pipeline can adjust for.
 
 ## Memory budget (`gpu_memory_utilization = 0.85`)
 
@@ -129,15 +180,25 @@ tune `gpu_memory_utilization` up toward 0.90 if there's slack.
 
 ### RTX 5090 32 GB (Blackwell `sm_120`, NVFP4 native)
 
-**Gemma 4 12B NVFP4** + `gemma-4-12B-it-assistant` drafter:
+**Gemma 4 12B NVFP4** + `gemma-4-12B-it-assistant` drafter — realistic
+budget updated from Vast.ai 5090 measurements (see project memo
+`p1_vast_install_recipe.md`), not the naive weights-plus-KV formula:
 
 ```
-32 GB × 0.85 = 27.2 GB  (weights + KV pool budget)
-weights ≈ 12B × 0.5 B/param (FP4) = 6 GB
-  → KV pool ≈ 27.2 - 6 = 21.2 GB
-drafter resident: ~1-2 GB
+32 GB × 0.85 = 27.2 GB  (weights + activations + KV pool budget)
+weights ≈ 12B × 0.5 B/param (FP4)  =  6 GB
+CUDA graph capture (FULL_AND_PIECEWISE, MTP head)
+                     + NVFP4 scales + activations ≈  6 GB
+drafter resident (BF16)                            ≈ 1-2 GB
+  → realistic KV pool ≈ 27.2 - 6 - 6 - 2 = 13.2 GB
 reserve = 32 - 27.2 = 4.8 GB
 ```
+
+The earlier ~21.2 GB estimate ignored FULL_AND_PIECEWISE capture
+memory and NVFP4 activation scales; the ~13 GB figure is what actually
+gets reported in the `GPU KV cache size` startup line and is what the
+covariate `kv_pool_tokens` will pin per cell. Trigger the workaround
+below when the observed pool drops toward 13 GB, not toward 21 GB.
 
 Notes:
 - Blackwell `sm_120` supports FP4 tensor cores natively; NVFP4 keeps
@@ -145,12 +206,17 @@ Notes:
 - If the drafter can't co-reside with the KV pool at hit ≥ 90%, drop
   `chunked_prefill_size` from 4096 → 2048 or lower
   `gpu_memory_utilization` to 0.80.
+- **LMCache × `kv_cache_dtype=fp8`**: LMCache's KV store/load path has
+  historically drifted on non-native KV dtypes; `VLLMServer.__init__`
+  emits a `RuntimeWarning` when this combination is requested. Verify
+  parity against a same-cell `kv_cache_dtype=auto` run before trusting
+  the fp8 numbers.
 
 ## Sanity 2-point (run this before the full sweep)
 
-Before spending a full sweep (B × hit × K = 6×4×4 = 96 cells) on any
-model, run the 2-cell sanity to check the hypothesis is even alive on
-the target box:
+Before spending a full sweep on any model (B × hit × K × arm = 6×4×4×2
+= 192 cells at the widest), run the 4-cell sanity to check the
+hypothesis is even alive on the target box:
 
 ```
 python -m benchmarks.runner \
@@ -158,17 +224,27 @@ python -m benchmarks.runner \
   --out results/sanity_2point
 ```
 
-Fixed at `B=32, K=2`, sweeping only `hit ∈ {0.0, 0.9}`. Verdict:
+Fixed at `B=32, K=2`, sweeping `hit ∈ {0.0, 0.9}` × `hit_source ∈
+{apc, lmcache}`. Verdict is read off the `apc` arm first (mechanism
+upper bound), then the `lmcache` arm (system upper bound after
+retrieval cost):
 
-- **Survive** — `hit=0.9` beats `hit=0.0` on throughput or ITL by
-  a **≥ 10 %** margin (bootstrap 95 % CI clears 0). LMCache is
-  actually converting prefill compute into decode slack that MTP
-  verify can absorb. Full sweep is worth running.
-- **Falsify** — margin is **< 5 %** or CI includes 0. Falsifier #2
-  wins (decode is compute-bound at high B or slack is absent).
-  Full sweep is a waste until the hypothesis is re-scoped.
-- **Ambiguous** — margin between 5 % and 10 %. Re-run for a second
-  seed before deciding.
+- **Survive (mechanism)** — on the `apc` arm, `hit=0.9` beats
+  `hit=0.0` on throughput or ITL by a **≥ 10 %** margin (bootstrap
+  95 % CI clears 0). Prefill compute is genuinely convertible into
+  decode slack that MTP verify absorbs. Full sweep is worth running.
+- **Falsify (mechanism)** — `apc` arm margin **< 5 %** or CI includes
+  0. Before declaring the hypothesis dead, check `prefill_share` in
+  the `hit=0.0, apc` cell (Falsifier #7): if it is already low, the
+  lever is small, not absent — re-run with larger `prompt_tokens`.
+  Otherwise Falsifier #2 (decode compute-bound) wins.
+- **Ambiguous (mechanism)** — margin between 5 % and 10 %. Re-run for
+  a second seed before deciding.
+- **System gap** — regardless of the mechanism verdict, compare
+  `apc` vs `lmcache` at `hit=0.9`. The delta is the LMCache retrieval
+  cost (Falsifier #5). If the `lmcache` arm loses more than ~30 % of
+  the `apc` arm's gain over `hit=0.0`, the "LMCache × MTP" claim is
+  compromised even when the mechanism itself is real.
 
 ## Branch topology
 
@@ -184,7 +260,39 @@ Fixed at `B=32, K=2`, sweeping only `hit ∈ {0.0, 0.9}`. Verdict:
 2. Decode crosses into compute-bound regime at high B (small models / short ctx)
 3. K ↑ inflates verify cost faster than acceptance rate amortizes
 4. Hypothesis success window narrows under realistic hit-rate distributions
-5. LMCache retrieval latency erases prefill-skip gain on short prompts
+5. LMCache retrieval latency erases prefill-skip gain on short prompts.
+   Isolated by comparing `apc` vs. `lmcache` arms at the same
+   `(B, hit_rate, K)`.
 6. External `*-it-assistant` drafter mis-alignment inflates rejection
-   rate — verify Gemma acceptance ≥ EXAONE same-graph baseline before
-   drawing conclusions about hit-rate × K.
+   rate. **Order of investigation**: check `spec_method_logged` first
+   — if the Gemma cells landed on `draft_model` instead of `mtp`, the
+   fallback (silent target/drafter state divergence) explains a low
+   acceptance rate before drafter alignment does. Only chase alignment
+   after `_assert_spec_routing()` has confirmed method routing is
+   correct.
+7. Lever-size shortfall vs. mechanism absence. If the sanity 2-point
+   falsifies, inspect the recorded `prefill_share` in the same cell:
+   a low share means prefill compute is already small relative to
+   decode, so `hit_rate` has little to remove and the mechanism can
+   still be real. Re-run with larger `prompt_tokens` (or a
+   longer-context workload) before declaring the hypothesis dead.
+
+## Sweep output → vLLM 0.24 DSD schedule
+
+The B×K table produced by the full sweep is directly reusable as the
+input to vLLM 0.24 DSD's
+`num_speculative_tokens_per_batch_size`. Extraction pattern:
+
+```
+per_B_optimal_K = argmax_K(throughput[B, hit_rate=<deployment>, K, arm=lmcache])
+# → [[1,4,3],[5,16,2],[17,32,1],[33,512,0]]   (illustrative)
+```
+
+Phase 2 (post-sanity survival) is therefore *upgrade + config*, not
+feature development. Phase 3 is the real feature contribution: DSD
+today indexes only by B, but this sweep's `(hit_rate, K)` cross
+section shows the optimal K is a function of `(B, prefill_share)`.
+Adding a `prefill_share` dimension to the DSD lookup — with the sweep
+table itself as the design evidence — is a first-of-its-kind
+hit/prefill-aware K schedule. That is why `prefill_share` and
+`kv_pool_tokens` are recorded on every cell.

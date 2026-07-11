@@ -122,6 +122,8 @@ async def _snapshot(
         spec_num_draft_tokens_total=_parse_metric(text, "vllm:spec_decode_num_draft_tokens_total"),
         spec_num_accepted_tokens_total=_parse_metric(text, "vllm:spec_decode_num_accepted_tokens_total"),
         kv_cache_usage_perc=_parse_metric(text, "vllm:kv_cache_usage_perc"),
+        prompt_tokens_total=_parse_metric(text, "vllm:prompt_tokens_total"),
+        generation_tokens_total=_parse_metric(text, "vllm:generation_tokens_total"),
     )
 
 
@@ -172,6 +174,7 @@ async def run_one(
     hit_rate: float,
     spec_k: int,
     spec_method: str,
+    hit_source: str = "apc",
 ) -> RunResult:
     if spec_method == "off" or spec_k == 0:
         spec = SpecConfig(method="off", num_steps=0)
@@ -180,9 +183,22 @@ async def run_one(
     else:
         spec = for_exaone_45(spec_k, spec_method)  # type: ignore[arg-type]
 
-    lmcache_cfg: Path | None = None
-    if cfg.engine.enable_lmcache and cfg.engine.lmcache_config:
-        lmcache_cfg = Path(cfg.engine.lmcache_config)
+    if hit_source == "apc":
+        lmcache_cfg: Path | None = None
+        enable_prefix_caching = True
+    elif hit_source == "lmcache":
+        lmcache_cfg = (
+            Path(cfg.engine.lmcache_config) if cfg.engine.lmcache_config else None
+        )
+        enable_prefix_caching = False
+    else:
+        raise ValueError(f"unknown hit_source={hit_source!r} (expected 'apc' or 'lmcache')")
+
+    if hit_source == "lmcache" and lmcache_cfg is None:
+        raise ValueError(
+            "hit_source='lmcache' requires engine.lmcache_config to be set; "
+            "found None. Provide a LMCache YAML or restrict the sweep to hit_sources=['apc']."
+        )
 
     server = VLLMServer(
         hf_id=cfg.model.hf_id,
@@ -197,6 +213,7 @@ async def run_one(
         reasoning_parser=cfg.model.reasoning_parser,
         tool_call_parser=cfg.model.tool_call_parser,
         kv_cache_dtype=cfg.engine.kv_cache_dtype,
+        enable_prefix_caching=enable_prefix_caching,
     )
 
     async with server as handle:
@@ -244,15 +261,26 @@ async def run_one(
         engine_snapshots=snapshots,
         started_ts=warmup_end,
         ended_ts=ended,
+        hit_source=hit_source,
+        drafter_loaded=spec.method != "off" and spec.num_steps > 0,
+        spec_method_logged=handle.spec_method_logged,
+        kv_pool_tokens=handle.kv_pool_tokens,
+        enable_prefix_caching=enable_prefix_caching,
+        enable_lmcache=lmcache_cfg is not None,
     )
 
 
 async def sweep(cfg: SweepConfig) -> list[RunResult]:
     results: list[RunResult] = []
-    grid = itertools.product(cfg.axes.batch_sizes, cfg.axes.hit_rates, cfg.axes.spec_k)
-    for b, h, k in grid:
+    grid = itertools.product(
+        cfg.axes.batch_sizes,
+        cfg.axes.hit_rates,
+        cfg.axes.spec_k,
+        cfg.axes.hit_sources,
+    )
+    for b, h, k, hit_source in grid:
         method = "off" if k == 0 else cfg.axes.spec_method
-        result = await run_one(cfg, b, h, k, method)
+        result = await run_one(cfg, b, h, k, method, hit_source)
         results.append(result)
     return results
 

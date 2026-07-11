@@ -47,6 +47,8 @@ class EngineSnapshot:
     spec_num_draft_tokens_total: float = 0.0
     spec_num_accepted_tokens_total: float = 0.0
     kv_cache_usage_perc: float = 0.0
+    prompt_tokens_total: float = 0.0
+    generation_tokens_total: float = 0.0
 
 
 @dataclass
@@ -60,14 +62,30 @@ class RunResult:
     engine_snapshots: list[EngineSnapshot]
     started_ts: float
     ended_ts: float
+    hit_source: str = "apc"
+    drafter_loaded: bool = False
+    spec_method_logged: str | None = None
+    kv_pool_tokens: int | None = None
+    enable_prefix_caching: bool = True
+    enable_lmcache: bool = False
 
     def throughput_tok_s(self) -> float:
         total = sum(r.completion_tokens for r in self.requests)
         wall = max(self.ended_ts - self.started_ts, 1e-9)
         return total / wall
 
+    def prefill_share(self) -> float:
+        if len(self.engine_snapshots) < 2:
+            return 0.0
+        first, last = self.engine_snapshots[0], self.engine_snapshots[-1]
+        d_prompt = max(last.prompt_tokens_total - first.prompt_tokens_total, 0.0)
+        d_gen = max(last.generation_tokens_total - first.generation_tokens_total, 0.0)
+        denom = d_prompt + d_gen
+        return d_prompt / denom if denom > 0 else 0.0
+
     def to_records(self) -> list[dict[str, Any]]:
         rows = []
+        prefill_share = self.prefill_share()
         for r in self.requests:
             rows.append({
                 "run_id": self.run_id,
@@ -75,6 +93,13 @@ class RunResult:
                 "hit_rate_target": self.hit_rate_target,
                 "spec_k": self.spec_k,
                 "spec_method": self.spec_method,
+                "hit_source": self.hit_source,
+                "drafter_loaded": self.drafter_loaded,
+                "spec_method_logged": self.spec_method_logged,
+                "kv_pool_tokens": self.kv_pool_tokens,
+                "enable_prefix_caching": self.enable_prefix_caching,
+                "enable_lmcache": self.enable_lmcache,
+                "prefill_share": prefill_share,
                 **asdict(r),
                 "ttft_ms": r.ttft_ms,
                 "itl_ms": r.itl_ms,

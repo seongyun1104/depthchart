@@ -2,6 +2,7 @@ axes:
   batch_sizes: [1, 4, 16, 32]
   hit_rates: [0.0, 0.3, 0.6, 0.9]
   spec_k: [0, 1, 2, 3]
+  hit_sources: [apc, lmcache]
   spec_method: mtp
   eagle_topk: 1
   num_draft_tokens: 4

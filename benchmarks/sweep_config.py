@@ -10,6 +10,7 @@ import yaml
 SpecMethod = Literal["off", "mtp", "nextn", "eagle", "eagle3", "fastmtp", "dflash"]
 Quantization = Literal["none", "fp8", "awq", "gptq",
                        "modelopt_fp4", "compressed-tensors"]
+HitSource = Literal["apc", "lmcache"]
 
 
 @dataclass(frozen=True)
@@ -17,6 +18,7 @@ class SweepAxes:
     batch_sizes: tuple[int, ...] = (1, 4, 16, 32, 64, 128)
     hit_rates: tuple[float, ...] = (0.0, 0.3, 0.6, 0.9)
     spec_k: tuple[int, ...] = (0, 1, 2, 3)
+    hit_sources: tuple[HitSource, ...] = ("apc", "lmcache")
     spec_method: SpecMethod = "mtp"
     eagle_topk: int = 1
     num_draft_tokens: int = 4
@@ -82,7 +84,7 @@ def load(path: str | Path) -> SweepConfig:
 
 def _from_dict(raw: dict) -> SweepConfig:
     axes_raw = dict(raw.get("axes", {}))
-    for k in ("batch_sizes", "hit_rates", "spec_k"):
+    for k in ("batch_sizes", "hit_rates", "spec_k", "hit_sources"):
         if k in axes_raw:
             axes_raw[k] = tuple(axes_raw[k])
     axes = SweepAxes(**axes_raw)
