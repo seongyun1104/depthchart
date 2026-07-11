@@ -1,0 +1,39 @@
+axes:
+  batch_sizes: [1, 4, 16, 32, 64, 128, 192, 256]
+  ctx_tokens: [256, 512, 1024, 2048, 4096]
+  spec_k: [3]
+  spec_method: mtp
+  eagle_topk: 1
+  num_draft_tokens: 4
+
+model:
+  name: gemma-4-31b-qat-fp8
+  hf_id: prithivMLmods/gemma-4-31B-it-qat-FP8
+  spec_methods: [mtp]
+  max_context: 32768
+  quantization: fp8
+  reasoning_parser: null
+  tool_call_parser: null
+  draft_model: google/gemma-4-31B-it-qat-q4_0-unquantized-assistant
+  dsd_schedule:
+    - [1, 64, 3]
+    - [65, 128, 1]
+    - [129, 512, 0]
+
+engine:
+  host: 127.0.0.1
+  port: 8000
+  chunked_prefill_size: 8192
+  mem_fraction_static: 0.85
+  tp_size: 1
+  gpu_vram_gb: 96
+  kv_cache_dtype: fp8
+
+workload:
+  completion_tokens: 256
+  duration_s: 120
+  warmup_s: 30
+  hit_rate: 0.0
+  hit_source: apc
+
+results_dir: results/dsd

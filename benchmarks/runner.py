@@ -181,9 +181,11 @@ async def run_one(
     if spec_method == "off" or spec_k == 0:
         spec = SpecConfig(method="off", num_steps=0)
     elif cfg.model.draft_model:
-        spec = for_gemma_4(spec_k, cfg.model.draft_model)
+        spec = for_gemma_4(spec_k, cfg.model.draft_model,
+                           dsd_schedule=cfg.model.dsd_schedule)
     else:
-        spec = for_exaone_45(spec_k, spec_method)  # type: ignore[arg-type]
+        spec = for_exaone_45(spec_k, spec_method,  # type: ignore[arg-type]
+                             dsd_schedule=cfg.model.dsd_schedule)
 
     if hit_source == "apc":
         lmcache_cfg: Path | None = None

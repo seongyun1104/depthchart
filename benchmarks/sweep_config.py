@@ -33,6 +33,7 @@ class ModelSpec:
     reasoning_parser: str | None = None
     tool_call_parser: str | None = None
     draft_model: str | None = None
+    dsd_schedule: tuple[tuple[int, int, int], ...] | None = None
 
 
 @dataclass(frozen=True)
@@ -101,6 +102,10 @@ def _from_dict(raw: dict) -> SweepConfig:
     model_raw = dict(raw["model"])
     if "spec_methods" in model_raw:
         model_raw["spec_methods"] = tuple(model_raw["spec_methods"])
+    if "dsd_schedule" in model_raw and model_raw["dsd_schedule"] is not None:
+        model_raw["dsd_schedule"] = tuple(
+            tuple(row) for row in model_raw["dsd_schedule"]
+        )
     model = ModelSpec(**model_raw)
 
     engine_raw = dict(raw.get("engine", {}))
