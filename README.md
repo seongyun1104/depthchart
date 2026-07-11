@@ -1,31 +1,40 @@
 # speculative-decoding-lab
 
-Single-GPU experimentation lab for the hypothesis:
+Single-GPU experimentation lab for the **(B, ctx) context-aware K controller**:
 
-> LMCache prefill skip frees compute slack on the decode phase. MTP's verify cost is absorbed by that slack, so MTP speedup survives at high batch where prior work ("Performance or Illusion?", MLSys 2026) shows it collapses.
+> Speculative decoding's optimal draft depth K is a function of both batch size B and decode-time context length ctx. The batch axis is already dynamic in production (vLLM 0.24 DSD, SGLang adaptive). The context-length axis is unclaimed in both frameworks and the literature. Long-context decode amortizes KV-read across K speculatively drafted tokens, keeping K > 0 optimal well past the batch-only crossover point where fixed K collapses. This lab measures the (B, ctx) surface, replicates it across two engines, and produces the controller that turns the surface into a runtime policy.
 
 **Two parallel tracks, one harness.** The infra (`scheduler/vllm_runner.py`,
 `speculative/adapter.py`, `benchmarks/runner.py`) is shared. The tracks
 differ only in the model / drafter / GPU-budget triple:
 
-| Track                | Main model                              | Drafter                                | GPU target       | Branch          |
-|----------------------|-----------------------------------------|----------------------------------------|------------------|-----------------|
-| Same-graph MTP head  | `LGAI-EXAONE/EXAONE-4.5-33B-FP8`        | (native in-graph MTP layer)            | H100 96 GB       | `dev-exaone4.5` |
-| External MTP drafter | `AxionML/Gemma-4-12B-NVFP4`             | `google/gemma-4-12B-it-assistant`      | RTX 5090 32 GB   | `dev-gemma4`    |
-| External MTP drafter | `prithivMLmods/gemma-4-31B-it-qat-FP8`  | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` | H100 96 GB | `dev-gemma4` |
+| Track                | Main model                              | Drafter                                | GPU target       | Status                                             |
+|----------------------|-----------------------------------------|----------------------------------------|------------------|----------------------------------------------------|
+| Same-graph MTP head  | `LGAI-EXAONE/EXAONE-4.5-33B-FP8`        | (native in-graph MTP layer)            | H100 96 GB       | deferred (drafter MAL ~1.5, low detection power)   |
+| External MTP drafter | `AxionML/Gemma-4-12B-NVFP4`             | `google/gemma-4-12B-it-assistant`      | RTX 5090 32 GB   | secondary                                          |
+| External MTP drafter | `prithivMLmods/gemma-4-31B-it-qat-FP8`  | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` | H100 96 GB | primary (campaign)                                 |
 
 Multi-instance, PD-disaggregation, and llm-d remain out of scope.
+LMCache is demoted to a capacity track (orthogonal to the DSD core);
+see `lmcache/` for that arm.
 
-## Hypothesis
+## Thesis
+
+Two independent axes drive the optimal K:
 
 ```
-B ↑                       → MTP speedup → 0  (target verify dominates)
-B ↑  +  LMCache hit ↑     → prefill skip → decode share ↑
-                          → decode is memory-bound → compute slack
-                          → MTP verify absorbed → MTP speedup survives
+B ↑ (short ctx, fixed drafter) → verify cost dominates
+                                → optimal K drops toward 0 at the batch-only crossover
+ctx ↑ (fixed B, fixed drafter) → per-token KV-read grows with ctx (memory-bound decode)
+                                → spec K amortizes that KV-read across K drafted tokens
+                                → K > 0 stays optimal well past the batch-only crossover
 ```
 
-LMCache is expected to flatten MTP's batch-size scaling curve.
+The (B, ctx) surface — not B alone — is the schedule table this lab
+produces. That table drops into vLLM 0.24 DSD's
+`num_speculative_tokens_per_batch_size`, extended by a ctx-length axis
+that is not in the framework today, and is replicated on SGLang for
+engine-independent evidence.
 
 ## Layout
 
@@ -33,7 +42,7 @@ LMCache is expected to flatten MTP's batch-size scaling curve.
 speculative/           MTP / EAGLE / external-drafter adapters; acceptance hooks
 lmcache/               LMCache configs (cpu_only, cpu_disk, cpu_redis); hit-rate workload gen
 scheduler/             vllm_runner.py (primary); sglang_runner.py kept as reference
-benchmarks/            sweep harness (B × hit_rate × K), metric collector
+benchmarks/            sweep harness (B × ctx × K), metric collector; hit_rate is a covariate
 benchmarks/configs/    per-model YAML: exaone_4_5_33b_fp8, gemma_4_12b_nvfp4, gemma_4_31b_qat_fp8
 kv-transfer/           (out of P1 scope; placeholder for future)
 papers/                REFERENCES.md — citations and gap mapping
