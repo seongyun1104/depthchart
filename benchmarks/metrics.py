@@ -69,6 +69,8 @@ class RunResult:
     kv_pool_tokens: int | None = None
     enable_prefix_caching: bool = True
     enable_lmcache: bool = False
+    spec_arm: str | None = None
+    seed_idx: int = 0
 
     def _window_snapshots(self) -> list[EngineSnapshot]:
         return [s for s in self.engine_snapshots
@@ -88,6 +90,13 @@ class RunResult:
         wall = max(self.ended_ts - self.started_ts, 1e-9)
         return total / wall
 
+    def spec_drafts_delta(self) -> float:
+        window = self._window_snapshots()
+        if len(window) < 2:
+            return 0.0
+        first, last = window[0], window[-1]
+        return max(last.spec_num_drafts_total - first.spec_num_drafts_total, 0.0)
+
     def prefill_share(self) -> float:
         window = self._window_snapshots()
         if len(window) < 2:
@@ -103,6 +112,7 @@ class RunResult:
         prefill_share = self.prefill_share()
         throughput_counter = self.throughput_tok_s()
         throughput_client = self.throughput_tok_s_client()
+        spec_drafts_delta = self.spec_drafts_delta()
         for r in self.requests:
             rows.append({
                 "run_id": self.run_id,
@@ -117,9 +127,12 @@ class RunResult:
                 "kv_pool_tokens": self.kv_pool_tokens,
                 "enable_prefix_caching": self.enable_prefix_caching,
                 "enable_lmcache": self.enable_lmcache,
+                "spec_arm": self.spec_arm,
+                "seed_idx": self.seed_idx,
                 "prefill_share": prefill_share,
                 "throughput_tok_s_counter": throughput_counter,
                 "throughput_tok_s_client": throughput_client,
+                "spec_drafts_delta": spec_drafts_delta,
                 **asdict(r),
                 "ttft_ms": r.ttft_ms,
                 "itl_ms": r.itl_ms,

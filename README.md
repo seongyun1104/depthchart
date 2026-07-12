@@ -252,6 +252,105 @@ Fixed at `B=32`, sweeping `ctx ∈ {256, 2048}` × `K ∈ {0, 3}`. Verdict:
   easy — pick a batch closer to the batch-only crossover before drawing
   conclusions about the ctx-axis mechanism.
 
+## V2 deployment gate
+
+Sanity (V1) tells us the ctx-axis mechanism is alive. V2 tells us
+whether the schedule the sweep produces is **safe to deploy in the
+K=0 tier** — the batch regime where the controller demotes to K=0 for
+production traffic. The gate answers one question:
+
+> Does keeping the drafter resident but skipping speculation
+> (`dsd_k0`, drafter loaded + K=0 per DSD schedule) cost measurably
+> less throughput than not loading the drafter at all (`no_spec`)?
+> If yes, the DSD schedule is production-safe. If no, the K=0 tier
+> has a residual drafter-forward tax that the controller must handle
+> another way (e.g. drafter unload/reload).
+
+### Three arms
+
+| arm              | `speculative-config`                                          | drafter VRAM | K per step        |
+|------------------|---------------------------------------------------------------|--------------|-------------------|
+| `dsd_k0`         | `method=mtp`, `dsd_schedule=[[1, B_max, 0]]`                  | loaded       | 0 (skip)          |
+| `no_spec_v024`   | not emitted                                                   | not loaded   | —                 |
+| `no_spec_v023`   | (reference only — prior no-spec throughput on vLLM 0.23)      | not loaded   | —                 |
+
+`no_spec_v023` is the reference number carried over from the earlier
+campaign (3413 tok/s at c=30 short-ctx). It guards against a
+vLLM 0.24 upgrade tax: if `no_spec_v024` is materially lower than
+`no_spec_v023` under the same workload, the drafter-tax verdict is
+confounded by an engine regression and must be adjudicated separately
+before the arm comparison is trusted.
+
+### Grid
+
+```
+batch  : {128, 192, 256}    K=0 tier coverage (see § Sanity for lower B)
+ctx    : {460, 970, 1990}   same three points as the dose-response probe
+arm    : {dsd_k0, no_spec}  no_spec_v023 is a reference number, not a run
+seed   : 3                  bootstrap-safe minimum
+```
+
+54 cells per campaign at 150 s per cell (120 s window + 30 s warmup)
+plus per-cell vLLM startup (~2 min each — the runner brings the
+engine up per cell today). Wall time ≈ 3.5–4 h. A single-engine
+sweep (start once per arm, reuse across batch/ctx) is a P2.8-plus
+optimization; V2 uses the current per-cell startup path so the
+same code path stays under test.
+
+### Verdict thresholds
+
+Let `tax = (throughput[no_spec] - throughput[dsd_k0]) / throughput[no_spec]`
+per (batch, ctx) cell, aggregated over the 3 seeds via bootstrap
+(N = 10 000, 95 % CI).
+
+- **Survive** — every (batch, ctx) cell's tax upper CI bound is
+  **< 5 %**. DSD schedule ships. Proceed to P2.8 A (offline emitter)
+  and P3.10 (results publication) in parallel; Layer B (runtime
+  hot-swap) unblocks.
+- **Ambiguous** — any cell falls in **5–10 %**. Re-run that cell for a
+  second seed pool; if the tax stays in the band, treat as Falsify.
+- **Falsify** — any cell's tax lower CI bound is **> 10 %**. The
+  residual drafter-forward cost is not negligible in the K=0 tier.
+  Controller must handle K=0 differently (candidates: drafter unload
+  on sustained K=0 dwell, separate no-drafter engine instance,
+  scheduler-side spec toggle). P2.8 B blocks; P2.8 A can still land
+  as an offline evidence artifact.
+
+### Confounds explicitly ruled out at V2
+
+- **LMCache**: off by default (P1.6). V2 config carries no LMCache
+  field; the LMCache × MTP shape (65) vs (128) bug (see
+  `p1_vast_install_recipe.md`) is orthogonal to V2 and stays parked.
+- **hit_rate**: 0.0 (APC, no prefix repeat). V2 measures the K=0 tier
+  cost in the worst-case workload for the controller — no cache to
+  amortize the drafter tax.
+- **K > 0 cells**: not swept at V2. V1 sanity already established the
+  ctx-axis mechanism on K=3 cells; V2 is specifically the K=0 tier.
+
+### Running the gate
+
+```
+python -m benchmarks.runner \
+  --config benchmarks/configs/v2_deployment_gate.yaml \
+  --out results/v2_deployment_gate
+
+python -m benchmarks.verdict \
+  --results results/v2_deployment_gate/requests.parquet
+```
+
+`benchmarks.verdict` prints a per-cell tax with bootstrap 95 % CI
+and an overall gate verdict (`SURVIVE`, `AMBIGUOUS`, `FALSIFY`).
+Non-default thresholds via `--tax-survive-pct` / `--tax-falsify-pct`.
+
+### Assertions during V2 (fail fast)
+
+- `dsd_k0` arm cells must record `Δvllm:spec_decode_num_drafts_total == 0`
+  over the measurement window. Non-zero drafts mean the DSD schedule
+  did not clamp to K=0 for the requested batch — pipeline aborts and
+  the run is discarded.
+- `drafter_loaded` covariate must match arm: `True` for `dsd_k0`,
+  `False` for `no_spec`. Enforced by the runner before the run starts.
+
 ## Branch topology
 
 - `main` — merge target. All infra + all three configs live here.

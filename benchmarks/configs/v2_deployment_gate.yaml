@@ -1,7 +1,10 @@
 axes:
-  batch_sizes: [32]
-  ctx_tokens: [256, 2048]
-  spec_k: [0, 3]
+  batch_sizes: [128, 192, 256]
+  ctx_tokens: [460, 970, 1990]
+  spec_k: [0]
+  spec_arms: [dsd_k0, no_spec]
+  spec_arm_reference_k: 3
+  spec_arm_batch_ceiling: 256
   spec_method: mtp
   eagle_topk: 1
   num_draft_tokens: 4
@@ -31,5 +34,6 @@ workload:
   warmup_s: 30
   hit_rate: 0.0
   hit_source: apc
+  seeds: 3
 
-results_dir: results/sanity_2point
+results_dir: results/v2_deployment_gate

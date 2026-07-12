@@ -11,6 +11,7 @@ SpecMethod = Literal["off", "mtp", "nextn", "eagle", "eagle3", "fastmtp", "dflas
 Quantization = Literal["none", "fp8", "awq", "gptq",
                        "modelopt_fp4", "compressed-tensors"]
 HitSource = Literal["apc", "lmcache"]
+SpecArm = Literal["dsd_k0", "no_spec"]
 
 
 @dataclass(frozen=True)
@@ -18,6 +19,9 @@ class SweepAxes:
     batch_sizes: tuple[int, ...] = (1, 4, 16, 32, 64, 128, 192, 256)
     ctx_tokens: tuple[int, ...] = (256, 512, 1024, 2048, 4096)
     spec_k: tuple[int, ...] = (0, 1, 2, 3)
+    spec_arms: tuple[SpecArm, ...] | None = None
+    spec_arm_reference_k: int = 3
+    spec_arm_batch_ceiling: int = 256
     spec_method: SpecMethod = "mtp"
     eagle_topk: int = 1
     num_draft_tokens: int = 4
@@ -55,6 +59,7 @@ class WorkloadSpec:
     warmup_s: int = 30
     hit_rate: float = 0.0
     hit_source: HitSource = "apc"
+    seeds: int = 1
 
 
 @dataclass(frozen=True)
@@ -97,7 +102,16 @@ def _from_dict(raw: dict) -> SweepConfig:
     for k in ("batch_sizes", "ctx_tokens", "spec_k"):
         if k in axes_raw:
             axes_raw[k] = tuple(axes_raw[k])
+    if "spec_arms" in axes_raw and axes_raw["spec_arms"] is not None:
+        axes_raw["spec_arms"] = tuple(axes_raw["spec_arms"])
     axes = SweepAxes(**axes_raw)
+
+    if axes.spec_arms is not None and set(axes.spec_k) != {0}:
+        raise ValueError(
+            "axes.spec_arms is set — this is a V2 arm-comparison sweep. "
+            "axes.spec_k must be omitted or [0] (K is fixed by the arm, "
+            "not swept). Got spec_k={}.".format(list(axes.spec_k))
+        )
 
     model_raw = dict(raw["model"])
     if "spec_methods" in model_raw:

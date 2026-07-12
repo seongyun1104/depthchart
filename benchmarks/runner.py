@@ -174,11 +174,26 @@ async def run_one(
     ctx_tokens: int,
     spec_k: int,
     spec_method: str,
+    spec_arm: str | None = None,
+    seed_idx: int = 0,
 ) -> RunResult:
     hit_rate = cfg.workload.hit_rate
     hit_source = cfg.workload.hit_source
 
-    if spec_method == "off" or spec_k == 0:
+    if spec_arm == "no_spec":
+        spec = SpecConfig(method="off", num_steps=0)
+    elif spec_arm == "dsd_k0":
+        ref_k = cfg.axes.spec_arm_reference_k
+        ceiling = cfg.axes.spec_arm_batch_ceiling
+        clamp_schedule: tuple[tuple[int, int, int], ...] = ((1, ceiling, 0),)
+        if not cfg.model.draft_model:
+            raise ValueError(
+                "spec_arm='dsd_k0' requires model.draft_model to be set — "
+                "the arm keeps the drafter resident while DSD clamps K to 0."
+            )
+        spec = for_gemma_4(ref_k, cfg.model.draft_model,
+                           dsd_schedule=clamp_schedule)
+    elif spec_method == "off" or spec_k == 0:
         spec = SpecConfig(method="off", num_steps=0)
     elif cfg.model.draft_model:
         spec = for_gemma_4(spec_k, cfg.model.draft_model,
@@ -272,11 +287,29 @@ async def run_one(
         kv_pool_tokens=handle.kv_pool_tokens,
         enable_prefix_caching=enable_prefix_caching,
         enable_lmcache=lmcache_cfg is not None,
+        spec_arm=spec_arm,
+        seed_idx=seed_idx,
     )
 
 
 async def sweep(cfg: SweepConfig) -> list[RunResult]:
     results: list[RunResult] = []
+    if cfg.axes.spec_arms is not None:
+        arm_grid = itertools.product(
+            range(cfg.workload.seeds),
+            cfg.axes.spec_arms,
+            cfg.axes.batch_sizes,
+            cfg.axes.ctx_tokens,
+        )
+        for seed_idx, arm, b, ctx in arm_grid:
+            method = cfg.axes.spec_method if arm == "dsd_k0" else "off"
+            result = await run_one(
+                cfg, b, ctx, spec_k=0, spec_method=method,
+                spec_arm=arm, seed_idx=seed_idx,
+            )
+            _assert_arm_invariants(result)
+            results.append(result)
+        return results
     grid = itertools.product(
         cfg.axes.batch_sizes,
         cfg.axes.ctx_tokens,
@@ -287,6 +320,30 @@ async def sweep(cfg: SweepConfig) -> list[RunResult]:
         result = await run_one(cfg, b, ctx, k, method)
         results.append(result)
     return results
+
+
+def _assert_arm_invariants(result: RunResult) -> None:
+    if result.spec_arm == "dsd_k0":
+        if not result.drafter_loaded:
+            raise RuntimeError(
+                f"dsd_k0 arm requires drafter_loaded=True, got False "
+                f"(run_id={result.run_id}, batch={result.batch_size}, ctx={result.ctx_tokens})"
+            )
+        drafts = result.spec_drafts_delta()
+        if drafts > 0:
+            raise RuntimeError(
+                f"dsd_k0 arm expected zero drafts over the measurement window, "
+                f"got Δspec_decode_num_drafts_total={drafts} "
+                f"(run_id={result.run_id}, batch={result.batch_size}, ctx={result.ctx_tokens}) "
+                f"— DSD schedule did not clamp K to 0. Check vLLM 0.24 "
+                f"num_speculative_tokens_per_batch_size handling."
+            )
+    elif result.spec_arm == "no_spec":
+        if result.drafter_loaded:
+            raise RuntimeError(
+                f"no_spec arm requires drafter_loaded=False, got True "
+                f"(run_id={result.run_id}, batch={result.batch_size}, ctx={result.ctx_tokens})"
+            )
 
 
 def main() -> None:
