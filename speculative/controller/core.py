@@ -50,13 +50,13 @@ class SpecControllerCore:
             return 0
         return k_adj
 
-    def observe_verify(self, accepted_per_req: Sequence[int]) -> None:
-        self.ema.observe(accepted_per_req)
+    def observe_verify(self, accepted_draft_per_req: Sequence[int]) -> None:
+        self.ema.observe(accepted_draft_per_req)
 
     def observe_pressure(
-        self, kv_usage: float, preempts: int, queue_depth: int
+        self, kv_usage: float, preempts_delta: int, queue_depth: int
     ) -> None:
-        self.overload.observe(kv_usage, preempts, queue_depth)
+        self.overload.observe(kv_usage, preempts_delta, queue_depth)
 
     @property
     def current_tier(self) -> Tier | None:

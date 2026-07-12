@@ -10,8 +10,12 @@ class OverloadDetector:
         self._last_kv: float = 0.0
         self._last_queue: int = 0
 
-    def observe(self, kv_usage_pct: float, preempts: int, queue_depth: int) -> None:
-        self._preempt_streak = self._preempt_streak + 1 if preempts > 0 else 0
+    def observe(
+        self, kv_usage_pct: float, preempts_delta: int, queue_depth: int
+    ) -> None:
+        self._preempt_streak = (
+            self._preempt_streak + 1 if preempts_delta > 0 else 0
+        )
         self._last_kv = kv_usage_pct
         self._last_queue = queue_depth
 

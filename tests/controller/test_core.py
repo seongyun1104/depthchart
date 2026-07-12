@@ -12,7 +12,7 @@ def test_decide_returns_k_from_lut(simple_config):
 def test_overload_forces_k_zero(simple_config):
     ctrl = SpecControllerCore(simple_config)
     ctrl.decide(batch_size=30, ctx_repr=100)
-    ctrl.observe_pressure(kv_usage=95.0, preempts=0, queue_depth=0)
+    ctrl.observe_pressure(kv_usage=95.0, preempts_delta=0, queue_depth=0)
     assert ctrl.decide(batch_size=30, ctx_repr=100) == 0
 
 

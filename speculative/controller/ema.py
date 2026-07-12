@@ -12,12 +12,12 @@ class EMAAccept:
         self._batches_seen: int = 0
         self._batches_since_update: int = 0
 
-    def observe(self, accepted_per_req: Sequence[int]) -> None:
-        if not accepted_per_req:
+    def observe(self, accepted_draft_per_req: Sequence[int]) -> None:
+        if not accepted_draft_per_req:
             return
         self._batches_seen += 1
         self._batches_since_update += 1
-        batch_mean = sum(accepted_per_req) / len(accepted_per_req)
+        batch_mean = sum(accepted_draft_per_req) / len(accepted_draft_per_req)
         if self._ema is None:
             self._ema = batch_mean
             self._batches_since_update = 0

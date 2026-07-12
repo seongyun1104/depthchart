@@ -7,7 +7,7 @@ class EMAConfig(BaseModel):
     ema_alpha: float = 0.2
     update_interval: int = 5
     warmup_batches: int = 10
-    down_hysteresis: float = -0.25
+    down_hysteresis: float = -0.45
     up_hysteresis: float = 0.0
 
 
