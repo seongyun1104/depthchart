@@ -7,7 +7,10 @@ class EMAConfig(BaseModel):
     ema_alpha: float = 0.2
     update_interval: int = 5
     warmup_batches: int = 10
-    down_hysteresis: float = -0.45
+    down_hysteresis: float = Field(
+        default=-0.45,
+        description="Accept-rate floor = 1.0 + down_hysteresis; EMA below this demotes K.",
+    )
     up_hysteresis: float = 0.0
 
 

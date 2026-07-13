@@ -50,8 +50,10 @@ class SpecControllerCore:
             return 0
         return k_adj
 
-    def observe_verify(self, accepted_draft_per_req: Sequence[int]) -> None:
-        self.ema.observe(accepted_draft_per_req)
+    def observe_verify(
+        self, accepted_draft_per_req: Sequence[int], k_applied: int
+    ) -> None:
+        self.ema.observe(accepted_draft_per_req, k_applied)
 
     def observe_pressure(
         self, kv_usage: float, preempts_delta: int, queue_depth: int

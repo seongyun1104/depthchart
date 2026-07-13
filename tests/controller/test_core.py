@@ -38,7 +38,7 @@ def test_dwell_allows_sustained_shift(simple_config):
 def test_observe_verify_feeds_ema(simple_config):
     ctrl = SpecControllerCore(simple_config)
     for _ in range(15):
-        ctrl.observe_verify([1, 1, 1])
+        ctrl.observe_verify([1, 1, 1], k_applied=3)
     for _ in range(10):
         ctrl.decide(batch_size=30, ctx_repr=100)
     k = ctrl.decide(batch_size=30, ctx_repr=100)
