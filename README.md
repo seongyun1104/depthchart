@@ -1,6 +1,8 @@
-# speculative-decoding-lab
+# DepthChart
 
-Single-GPU experimentation lab for the **(B, ctx) context-aware K controller**:
+*A (B, ctx) scheduling table for speculative decoding — the K controller for long-context decode.*
+
+Single-GPU experimentation lab for the **(B, ctx) context-length-aware K controller**:
 
 > Speculative decoding's optimal draft depth K is a function of both batch size B and decode-time context length ctx. The batch axis is already dynamic in production (vLLM 0.24 DSD, SGLang adaptive). The context-length axis is unclaimed in both frameworks and the literature. Long-context decode amortizes KV-read across K speculatively drafted tokens, keeping K > 0 optimal well past the batch-only crossover point where fixed K collapses. This lab measures the (B, ctx) surface, replicates it across two engines, and produces the controller that turns the surface into a runtime policy.
 

@@ -1,7 +1,7 @@
 [project]
-name = "speculative-decoding-lab"
+name = "depthchart"
 version = "0.0.1"
-description = "Single-GPU LMCache × MTP batch-scaling experiments"
+description = "Context-length-aware speculative decoding scheduler — the (B, ctx) K controller for long-context decode"
 requires-python = ">=3.11"
 dependencies = [
     "aiohttp>=3.10",
