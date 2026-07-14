@@ -26,10 +26,10 @@ engine:
   kv_cache_dtype: fp8
 
 workload:
-  completion_tokens: 256
+  completion_tokens: 200
   duration_s: 120
   warmup_s: 30
-  hit_rate: 0.0
+  hit_rate: 0.98
   hit_source: apc
 
 results_dir: results/v4_amortization_4k

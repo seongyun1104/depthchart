@@ -50,6 +50,7 @@ class EngineSpec:
     tp_size: int = 1
     gpu_vram_gb: int = 96
     kv_cache_dtype: str | None = None
+    kv_pool_tokens: int | None = None
 
 
 @dataclass(frozen=True)
@@ -142,5 +143,29 @@ def _from_dict(raw: dict) -> SweepConfig:
     workload = WorkloadSpec(**workload_raw)
 
     results_dir = Path(raw.get("results_dir", "results"))
-    return SweepConfig(axes=axes, model=model, engine=engine,
-                       workload=workload, results_dir=results_dir)
+    cfg = SweepConfig(axes=axes, model=model, engine=engine,
+                      workload=workload, results_dir=results_dir)
+    _validate_pool_fit(cfg)
+    return cfg
+
+
+def _validate_pool_fit(cfg: SweepConfig) -> None:
+    pool = cfg.engine.kv_pool_tokens
+    if pool is None:
+        return
+    if cfg.workload.hit_rate >= 0.5:
+        return
+    completion = cfg.workload.completion_tokens
+    for b in cfg.axes.batch_sizes:
+        for ctx in cfg.axes.ctx_tokens:
+            working_set = b * (ctx + completion)
+            if working_set > pool:
+                raise ValueError(
+                    f"pool-fit precheck failed: batch={b} × (ctx={ctx} + "
+                    f"completion={completion}) = {working_set:,} tokens > "
+                    f"engine.kv_pool_tokens={pool:,} at "
+                    f"workload.hit_rate={cfg.workload.hit_rate}. "
+                    f"Raise hit_rate ≥ 0.5 (shared prefix amortizes the "
+                    f"working set) or reduce batch/ctx. Otherwise the run "
+                    f"measures pool capacity collapse, not spec_decode."
+                )
