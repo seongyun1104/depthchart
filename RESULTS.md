@@ -28,7 +28,7 @@ The heart of the RFC. At a fixed high batch, growing the shared-prefix context r
 [1] Third-run warm value. APC cache accumulation nudged the throughput ratio 1.28 → 1.32 → 1.36 across runs, so 1.36× is a conservative floor; the TPOT ratio (~1.4×, stable across 3 runs) is the more robust estimate.
 [2] Single point. Characterized as onset of decline, not a decline curve; mapping ctx > 2k needs additional points.
 
-The mechanism is directly visible in the TPOT column: as ctx doubles from 970 to 1,990, **K=3 TPOT stays flat (77.8 → 78.0 ms) while K=0 TPOT keeps climbing (109 → 120 ms)**. Long-context decode is memory-bandwidth-bound on the per-step KV read; verifying K drafted tokens amortizes that read across K+1 tokens. The saving grows with ctx, but not without bound. **The gain peaks around ctx ≈ 2k (1.38× throughput / 1.54× TPOT) and recedes to 1.36× / ~1.41× at 4k**, as K=3's own per-step cost starts rising past 2k (its flat 78 ms breaks to 97 ms), narrowing the gap to K=0. We did not decompose the K=3 rise; candidates are drafter SWA-window growth, draft-layer FLOPs, and target-side KV growth. Preemptions were zero and KV utilization stayed at or below 48% across all four cells, confirming pool-fit; the hit 0.0 → 0.98 config fix is what keeps the working set below the pool at c = 256, ctx = 4k.
+The mechanism is directly visible in the TPOT column: as ctx doubles from 970 to 1,990, **K=3 TPOT stays flat (77.8 → 78.0 ms) while K=0 TPOT keeps climbing (109 → 120 ms)**. Long-context decode is memory-bandwidth-bound on the per-step KV read; verifying K drafted tokens amortizes that read across K+1 tokens. The saving grows with ctx, but not without bound. **The gain peaks around ctx ≈ 2k (1.38× throughput / 1.54× TPOT) and recedes to 1.36× / ~1.42× at 4k**, as K=3's own per-step cost starts rising past 2k (its flat 78 ms breaks to 97 ms), narrowing the gap to K=0. We did not decompose the K=3 rise; candidates are drafter SWA-window growth, draft-layer FLOPs, and target-side KV growth. Preemptions were zero and KV utilization stayed at or below 48% across all four cells, confirming pool-fit; the hit 0.0 → 0.98 config fix is what keeps the working set below the pool at c = 256, ctx = 4k.
 
 A parallel run at c = 192, ctx ≈ 2k reads 2,060 → 2,978 tok/s = **1.45×** (TPOT 92.3 → 60.4). Cells at ctx ≈ 200 were excluded — the actual measured hit rate was 63% rather than the target 98%, so they are not comparable to the four points above.
 
@@ -85,7 +85,7 @@ MTP × DSD tier switching works end-to-end. Some drafting still appears at runni
 
 ## 7. Adjudicating the high-concurrency K = 0 tax (2026-07-13)
 
-To isolate the anomalous K = 0 cells at c ≥ 192, we ran a 120s canonical three-way comparison at c = 256:
+To isolate the anomalous K = 0 cells at c ≥ 192, we ran the 120s canonical comparison at c = 256, referenced against the 0.23 c = 128 ceiling of 3,413 tok/s:
 
 | c = 256, 120s canonical | tok/s | TPOT p50 | TTFT p50 / p99 | completions |
 |---|---|---|---|---|
@@ -96,7 +96,7 @@ The no-spec arm matches the 0.23 c = 128 ceiling (3,413) exactly, so there is no
 
 Deployment reading: for an always-on high-batch server, a K = 0 tier is not free. Drop the spec config entirely for that regime. DSD as a whole earns its keep for c < 128.
 
-We did not decompose the tax into (i) PIECEWISE cost at high batch, (ii) drafter prefill obligation, or (iii) tier-decision overhead. The 0.23 static-K3 result at c = 128 (3,413) exonerates carrying the drafter as a residual cost — DSD mode itself is what is specific. A discriminator experiment using batch table `[[1,512,0]]` would isolate the pure infra tax.
+We did not decompose the tax into (i) PIECEWISE cost at high batch, (ii) drafter prefill obligation, or (iii) tier-decision overhead. The 0.23 static-K3 result at c = 128 (3,413) shows the drafter itself is not the source of the tax — DSD mode is what is specific. A discriminator experiment using batch table `[[1,512,0]]` would isolate the pure infra tax.
 
 This datapoint is the source of the RFC's §Motivation note that K = 0 tiers do not make speculation free, with the penalty concentrating in TTFT — consistent with the input-preparation hotspots reported in #47277.
 
@@ -114,7 +114,7 @@ The PIECEWISE-only path carries no measurable tax at low concurrency — the K =
 
 Short-context boundary probe (B = 61 → 128): c = 90 K=0/K=3 = 2,445 / **3,000** (1.23×, TTFT p99 960 ms); c = 110 K=0/K=1/K=3 = 2,892 / 3,185 / **3,300** (K = 3 best, 1.14× over K = 0, TTFT p99 796 ms); c = 128 = crossover (K = 0 = K = 3 = 3,413, TTFT p99 4,044 ms). The tier `[1,110,3]` is supported by this run — c = 110 K = 3 TTFT p99 = 796 ms is healthy, and the feared tail explosion lives between 110 and 128. Even at short context, K = 3 beats K = 1 at c = 110 (3,300 vs. 3,185, position-2 acceptance 53.7%), so the standard `[65,128,1]` middle tier is over-conservative and can be raised to K = 3 up to just before c = 128. TPOT also favors K = 3 across this range (27–30 ms vs. K = 0's 35–38). This is the RFC's secondary observation about coarse batch-only tables — the batch axis is scheduled less finely than the data supports.
 
-At ctx = 4k, K = 3 TPOT breaks from 78 to 97 ms — the flat curve is gone. K = 0 at ctx = 4k measured 137.8 ms, giving 1.41× (TPOT) / 1.36× (throughput) — the amortization knee is confirmed. The current "deployable" basis is c ≤ 100; the high-concurrency tier verdict rests on §7.
+At ctx = 4k, K = 3 TPOT breaks from 78 to 97 ms — the flat curve is gone. K = 0 at ctx = 4k measured 137.8 ms, giving 1.42× (TPOT) / 1.36× (throughput) — the amortization knee is confirmed. The current "deployable" basis is c ≤ 100; the high-concurrency tier verdict rests on §7.
 
 ## Unmeasured
 
