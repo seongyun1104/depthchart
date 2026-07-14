@@ -1,46 +1,53 @@
-# Gemma-4-31B MTP × Spec × LMCache × DSD — Measurement Corpus (2026-07-08 ~ 07-10)
+# Gemma-4-31B MTP × Spec × LMCache × DSD — Measurement Corpus (2026-07-08 → 07-14)
 
-> Environment: single H100 NVL 96GB, target `prithivMLmods/gemma-4-31B-it-qat-FP8` + drafter `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` (4 layers), KV fp8, max_len 32768, TRITON_ATTN.
-> Protocol: temp=0, `ignore_eos` with fixed real-token count (200 output), throughput = `vllm:generation_tokens_total` delta at steady state, 30s warmup / 120s window (§2·3) or 45s (§5·6, short-context / short ramps), AR = spec-counter delta, Prometheus cross-check.
-> Harness: `benchmarks/runner.py` + `benchmarks/configs/*.yaml`.
+This file is the measurement corpus behind the vLLM RFC *Context-length-aware speculative token scheduling* (§Evidence link). We measured on Gemma-4-31B (FP8, hybrid sliding + global attention) with `prithivMLmods/gemma-4-31B-it-qat-FP8` as target and `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` (4 layers) as its MTP drafter, on a single H100 NVL 96GB, KV fp8, `max_model_len` 32768, TRITON_ATTN. Greedy sampling, fixed 200-token output via `ignore_eos`. Throughput is read from the `vllm:generation_tokens_total` delta at steady state; acceptance rate from spec-decode counter deltas; both cross-checked against Prometheus. 30s warmup on top of 120s canonical windows (or 45s for short-context / short-ramp cells, noted per section). Harness and configs are at `benchmarks/runner.py` + `benchmarks/configs/*.yaml`.
 
-## 1. Crossover — batch axis (vLLM 0.23, short prompt ~150 tok)
+## 1. Batch-axis crossover (vLLM 0.23, short prompt ≈ 150 tok)
 
-| c | K=0 (no-spec) | K=1 | K=2 | K=3 | best/K0 |
+Reproduction of the classical short-context behavior — speculation pays until the batch saturates the compute ceiling.
+
+| client concurrency | K=0 (tok/s) | K=1 | K=2 | K=3 | best gain |
 |---|---|---|---|---|---|
-| 30 | 1,400 | 2,200 | 2,200 | **2,500** | 1.79x |
-| 60 | 2,200 | 2,800 | — | **3,000** | 1.36x |
-| 128 | 3,413 | 3,413 | — | 3,413 | **1.00x (converged = compute ceiling)** |
+| 30 | 1,400 | 2,200 | 2,200 | **2,500** | 1.79× (K=3) |
+| 60 | 2,200 | 2,800 | — | **3,000** | 1.36× (K=3) |
+| 128 | 3,413 | 3,413 | — | 3,413 | 1.00× (converged) |
 
-- TPOT p50 (ms): c30 22.0/12.5/12.5/10.0 · c60 25.9/19.3/—/17.1 · c128 41.1/31.8/—/32.2
-- per-position (K=3): 86/66/50% — invariant from c30 → 128. The K=0 arm ships without a speculative-config (footnote).
-- Methodology: without `ignore_eos`, benign divergence contaminates output length and flips the conclusion (two prior misjudgments before this was locked in).
+TPOT p50 (ms): c30 22.0 / 12.5 / 12.5 / 10.0; c60 25.9 / 19.3 / — / 17.1; c128 41.1 / 31.8 / — / 32.2. Per-position acceptance for K=3 stays at 86 / 66 / 50% from c=30 through c=128 — acceptance is not what moves the gain; verify economics under the compute ceiling is. The K=0 arm was launched without a speculative-config; running with a schedule and a K=0 tier is a materially different case (§7). One note on methodology: without `ignore_eos`, benign divergence between K=0 and K>0 arms contaminates the output-token count and flips the conclusion — we hit two prior misjudgments before this was locked in.
 
-## 2. Dose-response — context axis (0.23, hit 98–99% matched, c=256)
+## 2. Context-axis dose-response (vLLM 0.23, APC hit ≈ 98%, c = 256)
 
-| decode-time ctx (tok) | K=0 | K=3 | K3/K0 | K0 TPOT | K3 TPOT |
+The heart of the RFC. At a fixed high batch, growing the shared-prefix context returns the speculative gain and grows it — up to a mid-context knee — after which the gain saturates.
+
+| decode-time ctx (tok) | K=0 (tok/s) | K=3 (tok/s) | K3/K0 | K=0 TPOT (ms) | K=3 TPOT (ms) |
 |---|---|---|---|---|---|
-| ~460 | 3,107 | 3,640 | **1.17x** | 81.0 | 62.9 |
-| ~970 | 2,320 | 2,897 | **1.25x** | 109.3 | 77.8 |
-| ~1,990 | 2,110 | 2,915 | **1.38x** | 119.9 | **78.0** |
-| ~4,096 (7/14) | 1,768 | 2,397 | ~1.36x | 137.8 | 96.9 |
+| ~460 | 3,107 | 3,640 | **1.17×** | 81.0 | 62.9 |
+| ~970 | 2,320 | 2,897 | **1.25×** | 109.3 | 77.8 |
+| ~1,990 | 2,110 | 2,915 | **1.38×** | 119.9 | **78.0** |
+| ~4,096 | 1,768 | 2,397 | 1.36× [1] | 137.8 | 96.9 [2] |
 
-- **Key evidence: K=3 TPOT stays flat (970 → 1990: 77.8 → 78.0 ms) while K=0 keeps climbing (109 → 120 ms)** = KV-read amortization.
-- **★ V4 complete (7/14, hit 98% c=256, 3 runs each): amortization has a knee.** K=3 TPOT is **perfectly flat at 78 ms up to ctx = 2k, then breaks to 97 ms at 4k (+24%)**; K=0 keeps climbing (120 → 137). Throughput-ratio curve = 1.17 → 1.25 → 1.38 → **1.36** (rise stalls / slightly retreats at 4k). **The TPOT ratio 137/97 = 1.41× is the more robust estimate** (stable across 3 runs; the throughput ratio nudges 1.28 → 1.32 → 1.36 with APC warming — that's the caveat). Mechanism = spec's own long-context decode cost climbs (SWA window / drafter FLOPs eat into the KV-read saving), capping the relative gain. **Narrative: amortization scales with ctx but not unboundedly — knee around ~2k, then saturates near ~1.4× (honest boundary).** preempt = 0, kv ≤ 48% → pool-fit (the hit 0.0 → 0.98 config fix is the reason this holds).
-- Parallel run at c = 192: K0 2,060 / K3 2,978 = **1.45x** (TPOT 92.3 → 60.4). 0 preemptions per cell.
-- in ≈ 200 cells excluded: hit mismatch (63%).
-- Hit-axis probe (in = 2048, K = 3): hit 90 / 60 / 30 → 1,976 / 910 / 660 tok/s, kv 55 / 84 / 99% — hit's role is capacity (pool fit); low-hit long-context saturates and collapses. ⚠ **The hit = 60/30 cells mix in an LMCache auto-fallback (not pure APC)** — labels required if cited. The conclusion (hit = capacity condition) still stands.
+[1] Third-run warm value. APC cache accumulation nudged the throughput ratio 1.28 → 1.32 → 1.36 across runs, so 1.36× is a conservative floor; the TPOT ratio (~1.4×, stable across 3 runs) is the more robust estimate.
+[2] Single point. Characterized as onset of decline, not a decline curve; mapping ctx > 2k needs additional points.
 
-## 3. Drafter lineage (0.23, K=3 c=30)
+The mechanism is directly visible in the TPOT column: as ctx doubles from 970 to 1,990, **K=3 TPOT stays flat (77.8 → 78.0 ms) while K=0 TPOT keeps climbing (109 → 120 ms)**. Long-context decode is memory-bandwidth-bound on the per-step KV read; verifying K drafted tokens amortizes that read across K+1 tokens. The saving grows with ctx, but not without bound. **The gain peaks around ctx ≈ 2k (1.38× throughput / 1.54× TPOT) and recedes to 1.36× / ~1.41× at 4k**, as K=3's own per-step cost starts rising past 2k (its flat 78 ms breaks to 97 ms), narrowing the gap to K=0. We did not decompose the K=3 rise; candidates are drafter SWA-window growth, draft-layer FLOPs, and target-side KV growth. Preemptions were zero and KV utilization stayed at or below 48% across all four cells, confirming pool-fit; the hit 0.0 → 0.98 config fix is what keeps the working set below the pool at c = 256, ctx = 4k.
 
-| drafter | AR | per-position | tok/s |
+A parallel run at c = 192, ctx ≈ 2k reads 2,060 → 2,978 tok/s = **1.45×** (TPOT 92.3 → 60.4). Cells at ctx ≈ 200 were excluded — the actual measured hit rate was 63% rather than the target 98%, so they are not comparable to the four points above.
+
+We also ran a hit-axis probe at in = 2048, K = 3: hit 90 / 60 / 30% gave 1,976 / 910 / 660 tok/s with KV utilization 55 / 84 / 99%. The hit rate's role is capacity — a shared prefix is what keeps the working set below the pool — and low-hit long-context saturates and collapses. Caveat: the hit = 60 / 30% cells mix in an LMCache auto-fallback, so they are not pure APC numbers and should be labeled as such if cited. The conclusion (hit rate acts as a capacity condition) is unaffected.
+
+## 3. Drafter lineage (vLLM 0.23, K = 3, c = 30)
+
+Two drafter candidates on the same target model:
+
+| drafter | acceptance rate | per-position | tok/s |
 |---|---|---|---|
-| QAT-matched (Cell A) | **67.7%** | 86/65/51 | **2,500** |
-| original non-QAT (Cell B) | 51.6% | 78/47/30 | 2,200 |
+| QAT-matched | **67.7%** | 86 / 65 / 51 | **2,500** |
+| original non-QAT | 51.6% | 78 / 47 / 30 | 2,200 |
 
-→ Lineage match alone gives +14% throughput.
+Lineage match alone accounts for +14% throughput at this cell. This is why the RFC treats specific K palette values as deployment-specific — the drafter you pick moves acceptance rate materially, and the (B, ctx) surface shape is what generalizes, not the values.
 
-## 4. LMCache (0.23 + LMCache 0.5.1 MP connector)
+## 4. LMCache (vLLM 0.23 + LMCache 0.5.1, MP connector)
+
+The LMCache track is orthogonal to the RFC's claim but shaped the harness. Four configurations were tried:
 
 | configuration | GPU KV pool | note |
 |---|---|---|
@@ -49,62 +56,68 @@
 | **MP alone** | **364,354** | SupportsHMA active, 6 KV groups (5 sliding + 1 full) |
 | MP + MTP | ~331k | 4-way coexistence (+FP8 KV) OK |
 
-- Two wiring requirements: netns sharing (ZMQ fixed at `localhost:5555`) + server GPU visibility (ptr = CUDA IPC).
-- Consistency: store → `reset_prefix_cache` → retrieve; external hit +8,704 confirms LMCache is serving. Long-range integrity holds (cited beyond the 1024 window).
-- Capacity: pool 250 (working set 500k > 331k) → 45 recompute stampedes → 572 LMCache hits.
-- Throughput: APC 2,684 vs. LMCache-served 985 tok/s at c = 64 under nominal load. **Root cause not isolated**: serialization + 36% miss recompute + GPU contention. `max-gpu-workers 16` had no effect — presumed single-GPU affinity serialization.
-- Stability: under overload, `scheduler assert req_id in self.requests` → EngineDead (upstream defect).
+Two wiring requirements: netns sharing (ZMQ fixed at `localhost:5555`) and server GPU visibility (pointer via CUDA IPC). Consistency check: store → `reset_prefix_cache` → retrieve, with an external hit count of +8,704, confirms LMCache is serving; long-range integrity holds beyond the 1024 window. Under a working set of 500k tokens against a 331k pool we observed 45 recompute stampedes covered by 572 LMCache hits.
 
-## 5. vLLM 0.24 migration (7/10)
+Two open items. Under nominal load at c = 64, APC gives 2,684 tok/s while LMCache-served gives 985 — root cause not isolated among serialization overhead, the 36% miss recompute, and GPU contention; `max-gpu-workers 16` had no effect, and single-GPU affinity serialization is our current guess. Under overload, `scheduler assert req_id in self.requests` fires and the engine dies — an upstream defect.
 
-- Test ①: 0.24 × Gemma4-31B × MTP bring-up completes, argument change = 0, KV pool 330,966 (≈ 0.23), TRITON retained → **the RTX 5090 12B 0.24 failure is isolated to sm_120 specifics**.
+## 5. vLLM 0.24 migration smoke (2026-07-10)
 
-## 6. MTP × DSD (0.24, `num_speculative_tokens_per_batch_size:[[1,64,3],[65,128,1],[129,512,0]]`)
+Gemma-4-31B × MTP bring-up on 0.24 completes with zero argument changes, KV pool 330,966 (matching 0.23 within noise), TRITON backend retained. The prior 0.24 failure on RTX 5090 12B is therefore isolated to sm_120 specifics.
 
-Active recognition at startup: `WARNING vllm.py:767 "Dynamic speculative decoding ... Overriding cudagraph_mode from FULL_AND_PIECEWISE to PIECEWISE"`. The `VLLM_USE_V2_MODEL_RUNNER` env var is not required.
+## 6. MTP × DSD tier switching (vLLM 0.24, `[[1,64,3],[65,128,1],[129,512,0]]`)
 
-| client c | engine running peak | tier (aggregated) | tok/s | TPOT p50 |
+Dynamic speculative decoding paired with an MTP drafter is not documented as tested in vLLM — the DSD docs cite Eagle / E3 only — so this section is that datapoint. At startup: `WARNING vllm.py:767 "Dynamic speculative decoding ... Overriding cudagraph_mode from FULL_AND_PIECEWISE to PIECEWISE"`. The `VLLM_USE_V2_MODEL_RUNNER` env var is not required.
+
+| client c | engine running peak | tier (aggregated) | tok/s | TPOT p50 (ms) |
 |---|---|---|---|---|
 | 30 | — | **K=3** (drafts/step 3.0) | 2,533 | 10.3 |
 | 100 | — | **K=1** (runtime switch) | 3,089 | 31.5 |
-| 192 | 192 | K=1 mixed (AR 93.3%) | 2,870 | 70.5 |
-| 224 | 224 | K=0 | 2,330 | 75.2 |
-| 256 | 256 | K=1 mixed (AR 84.1%) | 2,605 | 81.2 |
-| 320 | 320 | K=0 | 1,740 | 110.5 |
-| 400 | 400 | **K=0** (spec 0) | 1,880 | 129.5 |
+| 192 | 192 | K=1 mixed (AR 93.3%) [3] | 2,870 | 70.5 |
+| 224 | 224 | K=0 | 2,330 [4] | 75.2 |
+| 256 | 256 | K=1 mixed (AR 84.1%) [3] | 2,605 | 81.2 |
+| 320 | 320 | K=0 | 1,740 [4] | 110.5 |
+| 400 | 400 | **K=0** (spec 0) | 1,880 [4] | 129.5 |
 
-- **Verdict**: MTP × DSD fully working (a combination we could not find prior verification for in public docs / issues — the vLLM DSD docs say "tested with Eagle / E3 only").
-- **Boundary finding**: some drafting cells still appear at running ≥ 129 = **the DSD index (per-step scheduled request count) fluctuates step-to-step** (ramp regions pass through lower tiers). Behavior near a boundary is probabilistic → place deployment boundaries outside the running-distribution tail + add hysteresis.
-- **Prometheus volume refinement**: draft/gen ratio during CAL is 0.02 (≈ 0.52 when K = 1 dominates) → **at c ≥ 192 the steady state is mostly K = 0, with drafting only during ramps (~2%)**. "K=1 held" is an aggregation illusion (only the K of the steps that drafted). By volume, the K = 0 tier is effectively active — the tier mixing is small ramp-time leakage. The V1b window shows d/g = 0.99 = pure K = 3 signature (cross-check).
-- ⚠ **Mixed-cell AR (93.3% / 84.1%) must not be cited** — an AR read from a ~2%-volume sample of drafting steps is noise.
-- ⚠ **High-concurrency K=0 cells (c = 224 / 320 / 400: 1,740–2,330) are suspected anomalies pending the V2 gate**: 51–68% of the 0.23 ceiling (c128 no-spec 3,413), non-monotonic (c320 < c400), and a derived-value mismatch (c224: 75.2 ms → 2,979 tok/s derived vs. 2,330 measured) = a 45s-window contamination signature. Not isolated among: (a) window contamination (b) DSD-K0 drafter-sync tax (arithmetic estimate ~7–10%, does not explain −30 to −50%) (c) 0.24 high-batch regression. **The production workload profile (sat = 256 / peak = 769) sits in this tier — "deployable" verdict withheld pending isolation.** The V2 gate is the 120s canonical three-way comparison at c = 256 (① DSD-K0 @ 0.24  ② no-spec @ 0.24  ③ reference: 0.23 ceiling 3,413).
+[3] The mixed-cell AR (93.3% / 84.1%) is read from a ~2%-volume sample of drafting steps and is therefore noise; do not cite as an acceptance measurement.
+[4] The high-concurrency K = 0 cells sit at 51–68% of the 0.23 c = 128 no-spec ceiling (3,413) and are non-monotonic (c320 < c400), with a derived-value mismatch at c224 (75.2 ms → 2,979 tok/s derived vs. 2,330 measured) — the signature of a contaminated 45s window. Suspected anomalies; adjudicated in §7.
 
-## 6b. V2 verdict (7/13) — DSD K=0 tier ≠ no-spec, tax −25%
+MTP × DSD tier switching works end-to-end. Some drafting still appears at running ≥ 129, meaning the DSD index (per-step scheduled request count) fluctuates step-to-step through admission ramps and momentarily passes through lower tiers. Boundary behavior is therefore probabilistic — a production deployment should place tier boundaries outside the running-distribution tail and add hysteresis. By volume the picture is different from the aggregated tier column: the draft/gen ratio during CAL is 0.02 (compare ~0.52 when K = 1 dominates), so at c ≥ 192 the steady state is mostly K = 0 with drafting confined to ~2% of ramp steps. "K = 1 held" is an aggregation illusion — only the K of the steps that actually drafted. As a cross-check, the pure-K=3 window in §8 reads draft/gen = 0.99.
+
+## 7. Adjudicating the high-concurrency K = 0 tax (2026-07-13)
+
+To isolate the anomalous K = 0 cells at c ≥ 192, we ran a 120s canonical three-way comparison at c = 256:
 
 | c = 256, 120s canonical | tok/s | TPOT p50 | TTFT p50 / p99 | completions |
 |---|---|---|---|---|
-| ② no-spec @ 0.24 | **3,413** | 73.7 ms | 0.28 s / 4.7 s | 2,048 |
-| ① DSD-K0 @ 0.24 | **2,560** | 78.6 ms | **2.0 s / 10.8 s** | 1,536 |
+| no-spec @ 0.24 | **3,413** | 73.7 ms | 0.28 s / 4.7 s | 2,048 |
+| DSD-K0 @ 0.24 | **2,560** | 78.6 ms | **2.0 s / 10.8 s** | 1,536 |
 
-- **② matches ③ (0.23 ceiling) exactly** → no 0.24 regression + ceiling verified flat up to c = 256 + wave-artifact ruled out.
-- **① < ② = −25%, tax is concentrated in TTFT** (only +6.7% TPOT) = prefill / scheduling cost. The lower reading from 45s cells was not window contamination — the tax is the actual cause (45s 2,605 ≈ 120s 2,560).
-- **Deployment guidance: for always-on high-batch servers, don't ship a K = 0 tier — drop the spec config entirely.** DSD is for the c < 128 regime.
-- Not decomposed: (i) PIECEWISE cost at high batch (ii) drafter prefill obligation — but the 0.23 static-K3 at c = 128 hits 3,413, so carrying the drafter is exonerated; **the DSD mode itself is what's specific** (iii) tier-decision overhead. Discriminator: batch table `[[1,512,0]]` isolates the pure infra tax.
-- **Upstream finding #4**: "DSD K=0 tier is not free at high batch" — measured, undocumented.
+The no-spec arm matches the 0.23 c = 128 ceiling (3,413) exactly, so there is no 0.24 regression, the ceiling extends flat to c = 256, and the wave-artifact hypothesis is ruled out. The DSD-K0 arm reads −25% against no-spec, with the tax concentrated in TTFT (only +6.7% TPOT) — a prefill / scheduling cost, not a decode cost. The lower 45s readings from §6 were not window contamination; the tax is the actual cause (the 45s cell at 2,605 lines up with the 120s cell at 2,560).
 
-## 7. V1b — PIECEWISE tax (0.24, c=30 K=3 direct comparison)
+Deployment reading: for an always-on high-batch server, a K = 0 tier is not free. Drop the spec config entirely for that regime. DSD as a whole earns its keep for c < 128.
 
-| | DSD (PIECEWISE) | static (FULL+PIECEWISE) |
+We did not decompose the tax into (i) PIECEWISE cost at high batch, (ii) drafter prefill obligation, or (iii) tier-decision overhead. The 0.23 static-K3 result at c = 128 (3,413) exonerates carrying the drafter as a residual cost — DSD mode itself is what is specific. A discriminator experiment using batch table `[[1,512,0]]` would isolate the pure infra tax.
+
+This datapoint is the source of the RFC's §Motivation note that K = 0 tiers do not make speculation free, with the penalty concentrating in TTFT — consistent with the input-preparation hotspots reported in #47277.
+
+## 8. PIECEWISE tax verification and short-context boundary probe
+
+DSD forces PIECEWISE at startup (see §6 warning). We compared DSD-PIECEWISE against static FULL+PIECEWISE at c = 30, K = 3:
+
+| | DSD (PIECEWISE) | static (FULL + PIECEWISE) |
 |---|---|---|
 | tok/s | 2,533 | 2,533 |
 | TPOT p50 | 10.3 ms | 10.5 ms |
 | completions / AR | 570 / 68.1% | 570 / 68.2% |
 
-→ **Tax ≈ 0**. **★ P4 boundary table complete (7/14, short-context B = 61–128):** c90 K0/K3 = 2,445 / **3,000** (1.23×, p99 960 ms) · c110 K0/K1/K3 = 2,892 / 3,185 / **3,300** (K3 best, 1.14×, **p99 796 ms**) · c128 = crossover (K0 = K3 = 3,413, p99 4,044 ms). **`[1,110,3]` extension approved** — c110 K3 TTFT p99 = 796 ms is healthy (the feared tail explosion lives between 110 and 128). **Even at short context K3 > K1** (c110 3,300 > 3,185, pos2 53.7%) → the existing `[65,128,1]` tier is over-conservative; can be raised to K = 3 up to just before c = 128. TPOT also favors K3 across the board (27–30 vs. K0 35–38). At the 4k cell: K3 TPOT 78 → 97 = **flat curve broken**; K0 @ 4k = 137 measured (7/14) → ratios 1.41× (TPOT) / 1.36× (throughput); amortization knee confirmed. **The current "deployable" basis is c ≤ 100 only — the high-concurrency tier verdict waits on §6 V2.**
+The PIECEWISE-only path carries no measurable tax at low concurrency — the K = 0 tax in §7 is not this.
 
-## Unmeasured (debt)
+Short-context boundary probe (B = 61 → 128): c = 90 K=0/K=3 = 2,445 / **3,000** (1.23×, TTFT p99 960 ms); c = 110 K=0/K=1/K=3 = 2,892 / 3,185 / **3,300** (K = 3 best, 1.14× over K = 0, TTFT p99 796 ms); c = 128 = crossover (K = 0 = K = 3 = 3,413, TTFT p99 4,044 ms). The tier `[1,110,3]` is supported by this run — c = 110 K = 3 TTFT p99 = 796 ms is healthy, and the feared tail explosion lives between 110 and 128. Even at short context, K = 3 beats K = 1 at c = 110 (3,300 vs. 3,185, position-2 acceptance 53.7%), so the standard `[65,128,1]` middle tier is over-conservative and can be raised to K = 3 up to just before c = 128. TPOT also favors K = 3 across this range (27–30 ms vs. K = 0's 35–38). This is the RFC's secondary observation about coarse batch-only tables — the batch axis is scheduled less finely than the data supports.
 
-- Quantitative quality gate — **(A) engine consistency complete 7/14**: greedy K=3 vs. K=0 at concurrency 1, control 30/30 deterministic, K-switch 0/30 bit-identical but **all cases benign reword (FP8 KV argmax flip, no corruption)**. Bit-identity is the wrong gate → **(B) scored equivalence** is the deployment pipeline's scored-eval domain (not run here).
-- ~~4k K=0 (4th point on the SWA-asymptote curve)~~ — **complete 7/14** (§2, knee confirmed).
-- Combined LMCache-served × spec throughput (after restore-bottleneck isolation).
-- LMCache −63% root-cause isolation / multi-GPU restore parallelism.
+At ctx = 4k, K = 3 TPOT breaks from 78 to 97 ms — the flat curve is gone. K = 0 at ctx = 4k measured 137.8 ms, giving 1.41× (TPOT) / 1.36× (throughput) — the amortization knee is confirmed. The current "deployable" basis is c ≤ 100; the high-concurrency tier verdict rests on §7.
+
+## Unmeasured
+
+- Quantitative quality gate. Engine consistency was checked on 2026-07-14: greedy K = 3 vs. K = 0 at concurrency 1, control 30 / 30 deterministic, K-switch 0 / 30 bit-identical — but all divergences were benign reword (FP8 KV argmax flip, no corruption). Bit-identity is the wrong gate; scored equivalence is the deployment pipeline's domain and is not run here.
+- LMCache-served × spec combined throughput, after the restore-bottleneck isolation.
+- LMCache −63% pool root cause; multi-GPU restore parallelism.
