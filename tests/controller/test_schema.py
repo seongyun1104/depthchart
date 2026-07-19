@@ -24,7 +24,7 @@ def test_bs_axis_must_start_at_1():
     with pytest.raises((ValueError, ValidationError)):
         ControllerConfig(
             k_palette=[0, 3],
-            schedule_2d=[r(2, 60, 0, 512, 3), r(2, 60, 513, 999, 3)],
+            schedule_2d=[r(2, 60, 1, 512, 3), r(2, 60, 513, 999, 3)],
         )
 
 
@@ -33,8 +33,8 @@ def test_bs_ranges_non_contiguous_rejected():
         ControllerConfig(
             k_palette=[0, 3],
             schedule_2d=[
-                r(1, 60, 0, 999, 3),
-                r(100, 200, 0, 999, 0),
+                r(1, 60, 1, 999, 3),
+                r(100, 200, 1, 999, 0),
             ],
         )
 
@@ -43,7 +43,7 @@ def test_k_must_be_in_palette():
     with pytest.raises((ValueError, ValidationError)):
         ControllerConfig(
             k_palette=[0, 1],
-            schedule_2d=[r(1, 60, 0, 999, 3)],
+            schedule_2d=[r(1, 60, 1, 999, 3)],
         )
 
 
@@ -51,7 +51,7 @@ def test_palette_must_include_zero():
     with pytest.raises((ValueError, ValidationError)):
         ControllerConfig(
             k_palette=[1, 3],
-            schedule_2d=[r(1, 60, 0, 999, 3)],
+            schedule_2d=[r(1, 60, 1, 999, 3)],
         )
 
 
@@ -60,18 +60,26 @@ def test_ctx_boundaries_must_be_uniform():
         ControllerConfig(
             k_palette=[0, 3],
             schedule_2d=[
-                r(1, 60, 0, 512, 3),
+                r(1, 60, 1, 512, 3),
                 r(1, 60, 513, 999, 3),
-                r(61, 128, 0, 999, 0),
+                r(61, 128, 1, 999, 0),
             ],
         )
 
 
-def test_ctx_must_start_at_0():
+def test_ctx_must_start_at_1():
     with pytest.raises((ValueError, ValidationError)):
         ControllerConfig(
             k_palette=[0, 3],
             schedule_2d=[r(1, 60, 100, 999, 3)],
+        )
+
+
+def test_ctx_lo_zero_rejected():
+    with pytest.raises((ValueError, ValidationError)):
+        ControllerConfig(
+            k_palette=[0, 3],
+            schedule_2d=[r(1, 60, 0, 999, 3)],
         )
 
 
@@ -80,9 +88,9 @@ def test_all_cells_required():
         ControllerConfig(
             k_palette=[0, 3],
             schedule_2d=[
-                r(1, 60, 0, 512, 3),
+                r(1, 60, 1, 512, 3),
                 r(1, 60, 513, 999, 3),
-                r(61, 128, 0, 512, 0),
+                r(61, 128, 1, 512, 0),
             ],
         )
 

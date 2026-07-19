@@ -29,8 +29,8 @@ class SmoothingConfig(BaseModel):
 class ScheduleRow(BaseModel):
     bs_lo: int = Field(ge=1)
     bs_hi: int = Field(ge=1)
-    ctx_lo: int = Field(ge=0)
-    ctx_hi: int = Field(ge=0)
+    ctx_lo: int = Field(ge=1)
+    ctx_hi: int = Field(ge=1)
     k: int = Field(ge=0)
 
 
@@ -71,8 +71,8 @@ class ControllerConfig(BaseModel):
         if len(boundary_sets) != 1:
             raise ValueError("ctx boundaries must be identical across all bs groups")
         ctx_pairs = sorted(next(iter(boundary_sets)))
-        if ctx_pairs[0][0] != 0:
-            raise ValueError("ctx axis must start at 0")
+        if ctx_pairs[0][0] != 1:
+            raise ValueError("ctx axis must start at 1")
         for (_, hi), (lo, _) in zip(ctx_pairs, ctx_pairs[1:], strict=False):
             if hi + 1 != lo:
                 raise ValueError(f"ctx ranges non-contiguous after ctx_hi={hi}")

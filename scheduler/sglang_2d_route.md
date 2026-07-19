@@ -48,7 +48,7 @@ Call sites:
 
 ## 2D config schema (backward-compatible)
 
-Legacy (still valid — interpreted as single ctx bucket `[0, max_context]`):
+Legacy (still valid — interpreted as single ctx bucket `[1, max_context]`):
 
 ```json
 {
@@ -66,13 +66,13 @@ Extended (ctx sub-buckets under each BS):
   "1":  {"candidate_steps": [1, 3, 7], "down_hysteresis": -0.25},
   "8": {
     "ctx_buckets": {
-      "0-2047":     {"candidate_steps": [0, 1, 3]},
+      "1-2047":     {"candidate_steps": [0, 1, 3]},
       "2048-32768": {"candidate_steps": [1, 3]}
     }
   },
   "32": {
     "ctx_buckets": {
-      "0-767":      {"candidate_steps": [0]},
+      "1-767":      {"candidate_steps": [0]},
       "768-32768":  {"candidate_steps": [1, 3]}
     }
   },
@@ -81,10 +81,10 @@ Extended (ctx sub-buckets under each BS):
 ```
 
 - Detection rule: BS entry contains key `ctx_buckets` → 2D; otherwise treat
-  as legacy single-bucket `[0, max_context]`. Legacy dicts still parse
+  as legacy single-bucket `[1, max_context]`. Legacy dicts still parse
   unchanged.
 - Bucket key format: `"lo-hi"` (inclusive), integer tokens. Must fully cover
-  `[0, max_context]` per BS with no gaps (validated at load time). Rule
+  `[1, max_context]` per BS with no gaps (validated at load time). Rule
   mirrors the vLLM RFC's rectangular-grid constraint.
 - Per-bucket params inherit BS-level defaults (existing dict-merge in
   `AdaptiveSpeculativeParams.__init__` L279 already does this).
@@ -110,19 +110,27 @@ def _slot_for_ctx(self, bs: int, ctx_repr: int) -> AdaptiveStepSlot:
 
 `_ctx_buckets_by_bs`, `_ctx_lo_by_bs`, `_ctx_hi_by_bs` are built in
 `__init__` alongside `_slots` — one per BS. Legacy single-bucket entries
-build with `_ctx_lo = [0]`, `_ctx_hi = [max_context]`, so the fast path
+build with `_ctx_lo = [1]`, `_ctx_hi = [max_context]`, so the fast path
 (`len(buckets) == 1`) covers all legacy configs at zero routing cost.
 
 ## Ctx representative
 
-Same choice as vLLM RFC: **p50 of `batch.seq_lens_cpu`** at
-`on_verify_complete_cpu` time. Rationale:
+Same choice as vLLM RFC: **p50 of `batch.seq_lens_cpu`** at both call sites.
+Rationale:
 
-- Already CPU-resident (see scheduler.py L2575) — no new sync.
+- Already CPU-resident (see scheduler.py L2647) — no new sync.
 - p50 is robust to outliers (a single long sequence in a mostly-short batch
   doesn't flip the tier).
-- Same signal for both `activate_step_by_batch` and `on_verify_complete` —
-  they see the same batch, so both call sites can pass the same value.
+- SGLang spec v2 convention (`eagle_worker_v2.py:1084`): `batch.seq_lens` is
+  the length **before** this iter's tokens. Within one verify cycle,
+  `seq_lens_cpu` is not mutated between `activate_step_by_batch`
+  (pre-dispatch) and `on_verify_complete_cpu` (post-CPU-sync); both sites
+  observe the identical pre-iter snapshot. `seq_lens_cpu` advances only
+  once per cycle, at `process_batch_result` (`scheduler.py:3408`),
+  becoming next cycle's pre-iter value.
+- Physically identical to vLLM RFC's `num_computed_tokens`: both name the
+  pre-iter processed length, which is what KV-read cost is proportional to.
+  The dose-response curve's independent variable maps 1:1 across engines.
 
 ## Callers — signature changes
 
@@ -187,7 +195,7 @@ graph shapes, no new memory.
 ## Backward compatibility — enumerated
 
 - Legacy config with no `ctx_buckets` key anywhere → 2D layer degenerates to
-  1D (one bucket per BS with range `[0, max_context]`). `_slot_for_ctx` hits
+  1D (one bucket per BS with range `[1, max_context]`). `_slot_for_ctx` hits
   the `len(buckets) == 1` fast path. Runtime cost delta: one dict lookup +
   one int compare.
 - CLI `--speculative-adaptive` with no `--speculative-adaptive-config` → uses
@@ -206,8 +214,8 @@ becomes reachable once adaptive itself is supported.
 ## What can be validated today (unit-level, no CUDA)
 
 - `_load_adaptive_config` parses both legacy and 2D schemas without error.
-- Rectangular-coverage validation rejects gaps (`{"0-1023", "2048-32768"}`
-  under one BS should fail; `{"0-2047", "2048-32768"}` should pass).
+- Rectangular-coverage validation rejects gaps (`{"1-1023", "2048-32768"}`
+  under one BS should fail; `{"1-2047", "2048-32768"}` should pass).
 - `_route(bs=8, ctx=1000)` and `_route(bs=8, ctx=3000)` return different
   slots for the 2D example above; the same call on a legacy config returns
   the same slot regardless of ctx.

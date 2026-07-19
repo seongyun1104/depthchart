@@ -14,9 +14,9 @@ def simple_config() -> ControllerConfig:
     return ControllerConfig(
         k_palette=[0, 1, 3],
         schedule_2d=[
-            _row(1, 60, 0, 512, 3),
+            _row(1, 60, 1, 512, 3),
             _row(1, 60, 513, 100_000, 3),
-            _row(61, 256, 0, 512, 0),
+            _row(61, 256, 1, 512, 0),
             _row(61, 256, 513, 100_000, 3),
         ],
     )
@@ -26,7 +26,7 @@ def simple_config() -> ControllerConfig:
 def gemma_h100_config() -> ControllerConfig:
     # §3.2 confirmed dose-response cells; other cells tentative pending V4/§7
     palette = [0, 1, 3]
-    ctx_bands = [(0, 256), (257, 768), (769, 1536), (1537, 100_000)]
+    ctx_bands = [(1, 256), (257, 768), (769, 1536), (1537, 100_000)]
     bs_bands = [(1, 60), (61, 128), (129, 256), (257, 1024)]
     grid = {
         (1, 60):     [3, 3, 3, 3],

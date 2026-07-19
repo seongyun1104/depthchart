@@ -30,7 +30,7 @@ class LUT2D:
         return len(self.bs_ranges) - 1
 
     def _ctx_idx(self, ctx: int) -> int:
-        ctx_c = max(0, ctx)
+        ctx_c = max(1, ctx)
         for j, (lo, hi) in enumerate(self.ctx_ranges):
             if lo <= ctx_c <= hi:
                 return j
