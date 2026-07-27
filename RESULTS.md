@@ -16,6 +16,8 @@ TPOT p50 (ms): c30 22.0 / 12.5 / 12.5 / 10.0; c60 25.9 / 19.3 / — / 17.1; c128
 
 ## 2. Context-axis dose-response (vLLM 0.23, APC hit ≈ 98%, c = 256)
 
+> **[2026-07-27 update — superseded]** The absolute ratios in this section (1.17× / 1.25× / 1.38× / 1.36×) carry warm-up bias. The 4096 cell's own note below acknowledges upward drift ("APC cache accumulation nudged the throughput ratio 1.28 → 1.32 → 1.36 across runs"), and the shorter-ctx cells were single-run without per-launch cache wipe or order reversal. Under stricter methodology (position-balanced 2-trial `vllm bench serve` with cache wipe + cold-start burn on H100 NVL / vLLM `c5d967c23`, see [PR #48944 decomposition comment](https://github.com/vllm-project/vllm/pull/48944#issuecomment-5091663057)) the *direction* reproduces (K3/K0 monotonic in ctx: 0.79 → 0.93 → 1.00 → 1.10) but the *level* attenuates substantially. **The load-bearing evidence for RFC #48627 is now Table 1 in that comment** (C′ vs A′ primary contrast: 1.29× / 1.30× / 1.36× at ctx 900/1900/4000, pre-registered SUCCESS). This section is retained as the original observation that motivated the exploration but should no longer be cited as rigorous evidence.
+
 The heart of the RFC. At a fixed high batch, growing the shared-prefix context returns the speculative gain and grows it — up to a mid-context knee — after which the gain saturates.
 
 | decode-time ctx (tok) | K=0 (tok/s) | K=3 (tok/s) | K3/K0 | K=0 TPOT (ms) | K=3 TPOT (ms) |
