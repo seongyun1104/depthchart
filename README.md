@@ -403,3 +403,13 @@ Adding a `prefill_share` dimension to the DSD lookup — with the sweep
 table itself as the design evidence — is a first-of-its-kind
 hit/prefill-aware K schedule. That is why `prefill_share` and
 `kv_pool_tokens` are recorded on every cell.
+
+## References
+
+- **MagicDec** — Sadhukhan et al., *"MagicDec: Breaking the Latency-Throughput Tradeoff for Long Context Generation with Speculative Decoding,"* [arXiv:2408.11049](https://arxiv.org/abs/2408.11049), 2024. The prior formalization of "amount of speculation as a function of sequence length" under memory-bound decode. Instantiated with self-speculation + StreamingLLM sparse KV in a batch-centric framing; the RFC below extends the general draft-target DSD surface with an explicit ctx-length axis.
+- **Original vLLM DSD (`num_speculative_tokens_per_batch_size`)** — [vllm-project/vllm#32374](https://github.com/vllm-project/vllm/pull/32374) (ekagra-ranjan, 2026-06). The base API this work extends.
+- **RFC** — [vllm-project/vllm#48627](https://github.com/vllm-project/vllm/issues/48627) — context-length-aware K in DSD.
+- **PR** — [vllm-project/vllm#48944](https://github.com/vllm-project/vllm/pull/48944) — implementation + [decomposition comment](https://github.com/vllm-project/vllm/pull/48944#issuecomment-5091663057) (2026-07-27 measurement, Table 1 is the current load-bearing evidence).
+- **Follow-up issue** — [vllm-project/vllm#49986](https://github.com/vllm-project/vllm/issues/49986) — DSD baseline tax vs no-spec: PIECEWISE cudagraph downgrade identified as one factor; K=0 fast-path and K-keyed FULL cudagraph capture proposed as fix paths.
+- **Companion SGLang PR** — [sgl-project/sglang#31716](https://github.com/sgl-project/sglang/pull/31716) — sibling 2D routing implementation on the SGLang adaptive-spec path.
+- **Full 2026-07-27 replication package** — [`pr48944_replication/`](pr48944_replication/) (orchestrator script, per-cell aggregates, exact commands + environment).
