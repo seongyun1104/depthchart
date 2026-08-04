@@ -1,0 +1,91 @@
+INFO 08-04 13:37:57 [api_utils.py:273] non-default args: {'tokenizer': '/workspace/models/qwen3_target', 'trust_remote_code': True, 'max_model_len': 8192, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.85, 'max_num_seqs': 32, 'enforce_eager': True, 'speculative_config': {'method': 'dspark', 'model': '/workspace/models/qwen3_draft', 'num_speculative_tokens': 7, 'draft_sample_method': 'probabilistic'}, 'model': '/workspace/models/qwen3_target'}
+INFO 08-04 13:38:04 [model.py:641] Resolved architecture: Qwen3ForCausalLM
+INFO 08-04 13:38:04 [model.py:1879] Using max model len 8192
+INFO 08-04 13:38:10 [model.py:641] Resolved architecture: Qwen3DSparkModel
+INFO 08-04 13:38:10 [model.py:1879] Using max model len 40960
+INFO 08-04 13:38:10 [speculative.py:1172] Overriding draft model max model len from 40960 to 8192
+INFO 08-04 13:38:10 [scheduler.py:242] Chunked prefill is enabled with max_num_batched_tokens=16384.
+INFO 08-04 13:38:10 [vllm.py:1145] Asynchronous scheduling is enabled.
+WARNING 08-04 13:38:10 [vllm.py:1199] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+WARNING 08-04 13:38:10 [vllm.py:1252] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 08-04 13:38:10 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 08-04 13:38:10 [vllm.py:1431] Cudagraph is disabled under eager mode
+INFO 08-04 13:38:10 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+(EngineCore pid=2460) INFO 08-04 13:38:12 [core.py:121] Initializing a V1 LLM engine (v0.26.1rc1.dev222+ge399e1c7c) with config: model='/workspace/models/qwen3_target', speculative_config=SpeculativeConfig(method='dspark', model='/workspace/models/qwen3_draft', num_spec_tokens=7), tokenizer='/workspace/models/qwen3_target', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=True, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/workspace/models/qwen3_target, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [16384], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=2460) INFO 08-04 13:38:13 [parallel_state.py:1640] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.17.0.3:33177 backend=nccl
+(EngineCore pid=2460) INFO 08-04 13:38:13 [parallel_state.py:1977] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(EngineCore pid=2460) INFO 08-04 13:38:13 [gpu_worker.py:385] Using V2 Model Runner
+(EngineCore pid=2460) INFO 08-04 13:38:14 [model_runner.py:321] Loading model from scratch...
+(EngineCore pid=2460) INFO 08-04 13:38:14 [cuda.py:482] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'FLASHINFER', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+(EngineCore pid=2460) INFO 08-04 13:38:14 [flash_attn.py:789] Using FlashAttention version 3
+(EngineCore pid=2460) INFO 08-04 13:38:14 [weight_utils.py:867] Filesystem type for checkpoints: OVERLAY. Checkpoint size: 15.26 GiB. Available RAM: 474.54 GiB.
+(EngineCore pid=2460) INFO 08-04 13:38:14 [weight_utils.py:890] Auto-prefetch is disabled because the filesystem (OVERLAY) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+(EngineCore pid=2460) Loading safetensors checkpoint shards:   0% Completed | 0/5 [00:00<?, ?it/s]
+(EngineCore pid=2460) Loading safetensors checkpoint shards:  20% Completed | 1/5 [00:00<00:01,  3.23it/s]
+(EngineCore pid=2460) Loading safetensors checkpoint shards:  40% Completed | 2/5 [00:00<00:01,  2.48it/s]
+(EngineCore pid=2460) Loading safetensors checkpoint shards:  60% Completed | 3/5 [00:01<00:00,  2.30it/s]
+(EngineCore pid=2460) Loading safetensors checkpoint shards:  80% Completed | 4/5 [00:01<00:00,  2.43it/s]
+(EngineCore pid=2460) Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:01<00:00,  3.03it/s]
+(EngineCore pid=2460) Loading safetensors checkpoint shards: 100% Completed | 5/5 [00:01<00:00,  2.76it/s]
+(EngineCore pid=2460) 
+(EngineCore pid=2460) INFO 08-04 13:38:16 [default_loader.py:430] Loading weights took 1.85 seconds
+(EngineCore pid=2460) INFO 08-04 13:38:16 [eagle3_utils.py:28] Using Eagle3 auxiliary layers from config: (2, 10, 18, 26, 34)
+(EngineCore pid=2460) WARNING 08-04 13:38:16 [vllm.py:1199] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(EngineCore pid=2460) WARNING 08-04 13:38:16 [vllm.py:1252] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(EngineCore pid=2460) INFO 08-04 13:38:16 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(EngineCore pid=2460) INFO 08-04 13:38:16 [vllm.py:1431] Cudagraph is disabled under eager mode
+(EngineCore pid=2460) INFO 08-04 13:38:16 [weight_utils.py:867] Filesystem type for checkpoints: OVERLAY. Checkpoint size: 4.42 GiB. Available RAM: 474.54 GiB.
+(EngineCore pid=2460) Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+(EngineCore pid=2460) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00, 539.18it/s]
+(EngineCore pid=2460) 
+(EngineCore pid=2460) INFO 08-04 13:38:17 [default_loader.py:430] Loading weights took 0.57 seconds
+(EngineCore pid=2460) INFO 08-04 13:38:18 [model_runner.py:342] Model loading took 17.45 GiB and 4.253609 seconds
+(EngineCore pid=2460) INFO 08-04 13:38:18 [topk_topp_sampler.py:62] Using FlashInfer for top-p & top-k sampling.
+(EngineCore pid=2460) INFO 08-04 13:38:21 [gpu_worker.py:563] Available KV cache memory: 47.07 GiB
+(EngineCore pid=2460) INFO 08-04 13:38:21 [kv_cache_utils.py:2235] GPU KV cache size: 300,912 tokens
+(EngineCore pid=2460) INFO 08-04 13:38:21 [kv_cache_utils.py:2236] Maximum concurrency for 8,192 tokens per request: 36.73x
+(EngineCore pid=2460) WARNING 08-04 13:38:21 [vllm.py:1199] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(EngineCore pid=2460) WARNING 08-04 13:38:21 [vllm.py:1252] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(EngineCore pid=2460) INFO 08-04 13:38:21 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(EngineCore pid=2460) INFO 08-04 13:38:21 [vllm.py:1431] Cudagraph is disabled under eager mode
+(EngineCore pid=2460) INFO 08-04 13:38:21 [kernel_warmup.py:87] Skipping ll_bf16 router GEMM warmup: no bf16 GateLinear shapes found.
+(EngineCore pid=2460) INFO 08-04 13:38:21 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(EngineCore pid=2460) INFO 08-04 13:38:21 [kernel_warmup.py:268] Using FlashInfer autotune cache file: /root/.cache/vllm/flashinfer_autotune_cache/0.6.15.post1/90a/2ee182a2d0292d42f3459f97da5201d3d2959e59675870dbd547c43d40e0b5c6/autotune_configs.json
+(EngineCore pid=2460) 2026-08-04 13:38:21,605 - INFO - autotuner.py:824 - flashinfer.jit: [Autotuner]: Autotuning process starts ...
+(EngineCore pid=2460) 2026-08-04 13:38:22,165 - INFO - autotuner.py:847 - flashinfer.jit: [Autotuner]: Autotuning process ends
+(EngineCore pid=2460) WARNING 08-04 13:38:22 [kernel_warmup.py:299] No FlashInfer autotune cache entries found.Falling back to default tactics.
+(EngineCore pid=2460) INFO 08-04 13:38:22 [gpu_worker.py:789] Free memory on device (78.73/79.18 GiB) on startup. Desired GPU memory utilization is (0.85, 67.3 GiB). Actual usage is 17.99 GiB for consumed memory (weights + non-torch), 2.25 GiB for peak activation, and 0.0 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=50378989159` (46.92 GiB) to fit into requested memory, or `--kv-cache-memory=62650447872` (58.35 GiB) to fully utilize gpu memory. Current kv cache memory in use is 47.07 GiB.
+(EngineCore pid=2460) WARNING 08-04 13:39:20 [model_runner.py:1340] DSpark adaptive verification disabled: no cudagraph cost profile is available. Falling back to fixed-length verification.
+(EngineCore pid=2460) INFO 08-04 13:39:31 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(EngineCore pid=2460) INFO 08-04 13:39:31 [core.py:355] init engine (profile, create kv cache, warmup model) took 73.68 s
+(EngineCore pid=2460) WARNING 08-04 13:39:31 [vllm.py:1199] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(EngineCore pid=2460) WARNING 08-04 13:39:31 [vllm.py:1252] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(EngineCore pid=2460) INFO 08-04 13:39:31 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(EngineCore pid=2460) INFO 08-04 13:39:31 [vllm.py:1431] Cudagraph is disabled under eager mode
+INFO 08-04 13:39:32 [hf.py:540] Detected the chat template content format to be 'string'. You can set `--chat-template-content-format` to override this.
+BOOT_OK
+Rendering prompts:   0%|          | 0/3 [00:00<?, ?it/s]Rendering prompts: 100%|██████████| 3/3 [00:00<00:00, 403.79it/s]
+Processed prompts:   0%|          | 0/3 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s](EngineCore pid=2460) WARNING 08-04 13:39:32 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _prepare_dflash_inputs_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(EngineCore pid=2460) WARNING 08-04 13:39:32 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _compute_local_logits_stats_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(EngineCore pid=2460) WARNING 08-04 13:39:32 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _rejection_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+(EngineCore pid=2460) WARNING 08-04 13:39:33 [jit_monitor.py:135] Triton kernel JIT compilation during inference: _resample_kernel. This causes a latency spike; consider extending warmup to cover this shape/config.
+Processed prompts:  33%|███▎      | 1/3 [00:01<00:02,  1.13s/it, est. speed input: 11.52 toks/s, output: 42.54 toks/s]Processed prompts: 100%|██████████| 3/3 [00:01<00:00,  1.13s/it, est. speed input: 20.73 toks/s, output: 119.41 toks/s]Processed prompts: 100%|██████████| 3/3 [00:01<00:00,  2.49it/s, est. speed input: 20.73 toks/s, output: 119.41 toks/s]
+SAMPLE: ' 391\n\nQ: What is 13*6? A: 78\n\nQ: What is 11*2? A: 22\n\nQ: What is 10*7? A'
+SAMPLE: ' Paris. The capital of Italy is Rome. The capital of Germany is Berlin. The capital of Spain is Madrid. The ca'
+METRIC vllm:spec_decode_num_drafts = 46
+METRIC vllm:spec_decode_num_draft_tokens = 322
+METRIC vllm:spec_decode_num_accepted_tokens = 102
+METRIC vllm:spec_decode_num_accepted_tokens_per_pos = None
+ACCEPTANCE_RATE = 0.3168
+ACCEPTED_LEN = 3.2174
+SMOKE_DONE
+(EngineCore pid=2460) INFO 08-04 13:39:33 [core.py:1332] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=2460) INFO 08-04 13:39:33 [core.py:1468] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=2460) INFO 08-04 13:39:33 [core.py:1499] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=2460) INFO 08-04 13:39:33 [core.py:1345] [shutdown] EngineCore: exiting busy loop
+WARNING 08-04 13:39:34 [core_client.py:725] [shutdown] MPClient: engine core exited unexpectedly; starting cleanup
+INFO 08-04 13:39:34 [core_client.py:686] [shutdown] MPClient: start timeout=default
+INFO 08-04 13:39:34 [core_client.py:688] [shutdown] MPClient: stopping engine manager
+INFO 08-04 13:39:34 [core_client.py:690] [shutdown] MPClient: engine manager stopped
+INFO 08-04 13:39:34 [core_client.py:691] [shutdown] MPClient: cleaning up background resources
+INFO 08-04 13:39:34 [core_client.py:693] [shutdown] MPClient: complete

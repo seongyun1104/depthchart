@@ -1,0 +1,89 @@
+INFO 08-04 13:52:05 [api_utils.py:273] non-default args: {'enable_return_routed_experts': True, 'tokenizer': '/workspace/models/gemma_moe', 'trust_remote_code': True, 'max_model_len': 2048, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.9, 'max_num_seqs': 8, 'disable_log_stats': True, 'model': '/workspace/models/gemma_moe'}
+INFO 08-04 13:52:05 [model.py:641] Resolved architecture: Gemma4ForConditionalGeneration
+INFO 08-04 13:52:05 [model.py:1879] Using max model len 2048
+INFO 08-04 13:52:08 [scheduler.py:242] Chunked prefill is enabled with max_num_batched_tokens=16384.
+INFO 08-04 13:52:08 [config.py:231] Gemma4 model has heterogeneous head dimensions (head_dim=256, global_head_dim=512). Using FA4 for all layers to avoid mixed FA3/FA4 penalty.
+INFO 08-04 13:52:08 [vllm.py:1145] Asynchronous scheduling is enabled.
+INFO 08-04 13:52:08 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+WARNING 08-04 13:52:08 [cuda.py:323] Forcing --disable_chunked_mm_input for models with multimodal-bidirectional attention.
+(EngineCore pid=4972) INFO 08-04 13:52:12 [core.py:121] Initializing a V1 LLM engine (v0.26.1rc1.dev222+ge399e1c7c) with config: model='/workspace/models/gemma_moe', speculative_config=None, tokenizer='/workspace/models/gemma_moe', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=2048, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=False, enable_return_routed_experts=True, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/workspace/models/gemma_moe, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.VLLM_COMPILE: 3>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['none'], 'ir_enable_torch_wrap': True, 'splitting_ops': ['vllm::unified_attention_with_output', 'vllm::unified_mla_attention_with_output', 'vllm::mamba_mixer2', 'vllm::mamba_mixer', 'vllm::short_conv', 'vllm::linear_attention', 'vllm::qwen_gdn_attention_core', 'vllm::gdn_attention_core_xpu', 'vllm::olmo_hybrid_gdn_full_forward', 'vllm::sparse_attn_indexer', 'vllm::rocm_aiter_sparse_attn_indexer', 'vllm::deepseek_v4_attention', 'vllm::hpc_rope_norm_forward', 'vllm::unified_kv_cache_update', 'vllm::unified_mla_kv_cache_update'], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [16384], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.FULL_AND_PIECEWISE: (2, 1)>, 'cudagraph_num_of_warmups': 1, 'cudagraph_capture_sizes': [1, 2, 4, 8, 16], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': False, 'fuse_act_quant': False, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 16, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=4972) INFO 08-04 13:52:13 [parallel_state.py:1640] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.17.0.3:44821 backend=nccl
+(EngineCore pid=4972) INFO 08-04 13:52:13 [parallel_state.py:1977] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank 0, EPLB rank N/A
+(EngineCore pid=4972) INFO 08-04 13:52:14 [topk_topp_sampler.py:62] Using FlashInfer for top-p & top-k sampling.
+(EngineCore pid=4972) INFO 08-04 13:52:14 [gpu_model_runner.py:5308] Starting to load model /workspace/models/gemma_moe...
+(EngineCore pid=4972) INFO 08-04 13:52:15 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+(EngineCore pid=4972) INFO 08-04 13:52:15 [cuda.py:482] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+(EngineCore pid=4972) INFO 08-04 13:52:15 [flash_attn.py:789] Using FlashAttention version 4
+(EngineCore pid=4972) INFO 08-04 13:52:15 [unquantized.py:304] Using TRITON Unquantized MoE backend out of potential backends: ['TRITON', 'BATCHED_TRITON', 'FlashInfer TRTLLM', 'FlashInfer CUTLASS'].
+(EngineCore pid=4972) INFO 08-04 13:52:15 [weight_utils.py:867] Filesystem type for checkpoints: OVERLAY. Checkpoint size: 48.07 GiB. Available RAM: 425.22 GiB.
+(EngineCore pid=4972) INFO 08-04 13:52:15 [weight_utils.py:890] Auto-prefetch is disabled because the filesystem (OVERLAY) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+(EngineCore pid=4972) Loading safetensors checkpoint shards:   0% Completed | 0/2 [00:00<?, ?it/s]
+(EngineCore pid=4972) Loading safetensors checkpoint shards:  50% Completed | 1/2 [00:05<00:05,  5.55s/it]
+(EngineCore pid=4972) Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:07<00:00,  3.17s/it]
+(EngineCore pid=4972) Loading safetensors checkpoint shards: 100% Completed | 2/2 [00:07<00:00,  3.53s/it]
+(EngineCore pid=4972) 
+(EngineCore pid=4972) INFO 08-04 13:52:22 [default_loader.py:430] Loading weights took 7.11 seconds
+(EngineCore pid=4972) INFO 08-04 13:52:22 [unquantized.py:383] Using MoEPrepareAndFinalizeNoDPEPModular
+(EngineCore pid=4972) INFO 08-04 13:52:22 [unquantized.py:384] Using TritonExperts MoE backend
+(EngineCore pid=4972) INFO 08-04 13:52:23 [gpu_model_runner.py:5405] Model loading took 48.54 GiB memory and 7.644519 seconds
+(EngineCore pid=4972) INFO 08-04 13:52:23 [gpu_model_runner.py:6457] Encoder cache will be initialized with a budget of 16384 tokens, and profiled with 6 video items of the maximum feature size.
+(EngineCore pid=4972) INFO 08-04 13:52:53 [backends.py:1094] Using cache directory: /root/.cache/vllm/torch_compile_cache/88379402b9/rank_0_0/backbone for vLLM's torch.compile
+(EngineCore pid=4972) INFO 08-04 13:52:53 [backends.py:1155] Dynamo bytecode transform time: 8.25 s
+(EngineCore pid=4972) INFO 08-04 13:53:24 [backends.py:393] Compiling a graph for compile range (1, 16384) takes 31.24 s
+(EngineCore pid=4972) INFO 08-04 13:53:28 [backends.py:920] collected artifacts: 31 entries, 6 artifacts, 21252122 bytes total
+(EngineCore pid=4972) INFO 08-04 13:53:28 [decorators.py:708] saved AOT compiled function to /root/.cache/vllm/torch_compile_cache/torch_aot_compile/a02e3669958e2584fb028554968a07d1d57ebe21fc7827c920bfd59f0f003d83/rank_0_0/model
+(EngineCore pid=4972) INFO 08-04 13:53:28 [monitor.py:53] torch.compile took 43.46 s in total
+(EngineCore pid=4972) WARNING 08-04 13:53:29 [fused_moe.py:1161] Using default MoE config. Performance might be sub-optimal! Config file not found at /workspace/vllm_src/vllm/model_executor/layers/fused_moe/configs/E=128,N=704,device_name=NVIDIA_H100_PCIe.json
+(EngineCore pid=4972) INFO 08-04 13:53:30 [monitor.py:81] Initial profiling/warmup run took 1.59 s
+(EngineCore pid=4972) INFO 08-04 13:53:36 [gpu_model_runner.py:6673] Profiling CUDA graph memory: PIECEWISE=5 (largest=16), FULL=4 (largest=8)
+(EngineCore pid=4972) /venv/main/lib/python3.10/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2214: UserWarning: Argument aux_data (position 18) cannot be converted to a JitArgument for function 'cutlass___call___vllmvllm_flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i641_None_10'. Its type `<class 'vllm.vllm_flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'vllm.vllm_flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+(EngineCore pid=4972)   exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+(EngineCore pid=4972) /venv/main/lib/python3.10/site-packages/nvidia_cutlass_dsl/dsl_packages/cutlass/base_dsl/dsl.py:2214: UserWarning: Argument aux_data (position 18) cannot be converted to a JitArgument for function 'cutlass___call___vllmvllm_flash_attncuteflash_fwd_sm90FlashAttentionForwardSm90_object_at__Tensorgmemoi64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tensorgmemoi64i64i641_Tens'. Its type `<class 'vllm.vllm_flash_attn.cute.utils.AuxData'>` is not supported. If the value is known at compile time, annotate it: `aux_data: Constexpr`. Otherwise, implement the `JitArgument` or `DynamicExpression` protocol for type `<class 'vllm.vllm_flash_attn.cute.utils.AuxData'>`, or register a custom argument adapter.
+(EngineCore pid=4972)   exe_args, func_types, adapted_args = self.generate_mlir_function_types(
+(EngineCore pid=4972) INFO 08-04 13:53:56 [gpu_model_runner.py:6798] Estimated CUDA graph memory: 0.07 GiB total
+(EngineCore pid=4972) INFO 08-04 13:53:56 [gpu_worker.py:563] Available KV cache memory: 19.62 GiB
+(EngineCore pid=4972) INFO 08-04 13:53:56 [gpu_worker.py:578] CUDA graph memory profiling is enabled (default since v0.21.0). The current --gpu-memory-utilization=0.9000 is equivalent to --gpu-memory-utilization=0.8992 without CUDA graph memory profiling. To maintain the same effective KV cache size as before, increase --gpu-memory-utilization to 0.9008. To disable, set VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0.
+(EngineCore pid=4972) INFO 08-04 13:53:56 [kv_cache_utils.py:2235] GPU KV cache size: 92,856 tokens
+(EngineCore pid=4972) INFO 08-04 13:53:56 [kv_cache_utils.py:2236] Maximum concurrency for 2,048 tokens per request: 45.34x
+(EngineCore pid=4972) INFO 08-04 13:53:56 [gpu_model_runner.py:7690] Initializing routed experts capturer, enable_return_routed_experts: True
+(EngineCore pid=4972) INFO 08-04 13:53:56 [routed_experts_capturer.py:94] RoutedExpertsCapturer: allocating buffer with max_tokens=16384, num_layers=30, num_experts_per_tok=8 (hf_config.model_type=gemma4_text)
+(EngineCore pid=4972) INFO 08-04 13:53:56 [kernel_warmup.py:92] Warming up ll_bf16 router GEMM kernels for shapes: ((2816, 128),).
+(EngineCore pid=4972) INFO 08-04 13:53:58 [cutedsl_warmup.py:105] Skipping CuTeDSL warmup because no compile units were requested.
+(EngineCore pid=4972) INFO 08-04 13:53:58 [kernel_warmup.py:268] Using FlashInfer autotune cache file: /root/.cache/vllm/flashinfer_autotune_cache/0.6.15.post1/90a/0b53876c7e79a04fe9e8dc522f974d16b9843a24597d5601436b228e1cd45deb/autotune_configs.json
+(EngineCore pid=4972) 2026-08-04 13:53:58,483 - INFO - autotuner.py:824 - flashinfer.jit: [Autotuner]: Autotuning process starts ...
+(EngineCore pid=4972) 2026-08-04 13:53:58,508 - INFO - autotuner.py:847 - flashinfer.jit: [Autotuner]: Autotuning process ends
+(EngineCore pid=4972) WARNING 08-04 13:53:58 [kernel_warmup.py:299] No FlashInfer autotune cache entries found.Falling back to default tactics.
+(EngineCore pid=4972) INFO 08-04 13:53:58 [gpu_model_runner.py:6859] Rank 0: Torch profiler disabled for CUDA graph capture
+(EngineCore pid=4972) Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):   0%|          | 0/5 [00:00<?, ?it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE):  60%|██████    | 3/5 [00:00<00:00, 21.46it/s]Capturing CUDA graphs (mixed prefill-decode, PIECEWISE): 100%|██████████| 5/5 [00:00<00:00,  7.92it/s]
+(EngineCore pid=4972) Capturing CUDA graphs (decode, FULL):   0%|          | 0/4 [00:00<?, ?it/s]Capturing CUDA graphs (decode, FULL):  75%|███████▌  | 3/4 [00:00<00:00, 21.61it/s]Capturing CUDA graphs (decode, FULL): 100%|██████████| 4/4 [00:00<00:00, 21.66it/s]
+(EngineCore pid=4972) INFO 08-04 13:54:00 [gpu_model_runner.py:6905] Graph capturing finished in 2 secs, took 0.07 GiB
+(EngineCore pid=4972) INFO 08-04 13:54:00 [gpu_worker.py:726] CUDA graph pool memory: 0.07 GiB (actual), 0.07 GiB (estimated), difference: 0.01 GiB (8.1%).
+(EngineCore pid=4972) INFO 08-04 13:54:00 [gpu_worker.py:789] Free memory on device (78.73/79.18 GiB) on startup. Desired GPU memory utilization is (0.9, 71.26 GiB). Actual usage is 50.42 GiB for consumed memory (weights + non-torch), 1.22 GiB for peak activation, and 0.07 GiB for CUDAGraph memory. Replace gpu_memory_utilization config with `--kv-cache-memory=20832919450` (19.4 GiB) to fit into requested memory, or `--kv-cache-memory=28853503488` (26.87 GiB) to fully utilize gpu memory. Current kv cache memory in use is 19.62 GiB.
+(EngineCore pid=4972) INFO 08-04 13:54:00 [jit_monitor.py:79] Kernel JIT monitor activated; monitored JIT compilations during inference will use mode=warn.
+(EngineCore pid=4972) INFO 08-04 13:54:01 [core.py:348] init engine (profile, create kv cache, warmup model) took 97.98 s (compilation: 43.46 s)
+(EngineCore pid=4972) INFO 08-04 13:54:01 [routed_experts_capturer.py:298] RoutedExpertsManager CPU buffer: 0.25 GB (slots=1028672, layers=30, top_k=8, dtype=uint8)
+(EngineCore pid=4972) INFO 08-04 13:54:01 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['native'], fused_add_rms_norm=['native'])
+INFO 08-04 13:54:03 [hf.py:540] Detected the chat template content format to be 'string'. You can set `--chat-template-content-format` to override this.
+INFO 08-04 13:54:47 [base.py:235] Multi-modal warmup completed in 43.857s
+INFO 08-04 13:54:47 [base.py:235] Readonly multi-modal warmup completed in 0.083s
+BOOT_OK
+Rendering prompts:   0%|          | 0/4 [00:00<?, ?it/s]Rendering prompts: 100%|██████████| 4/4 [00:00<00:00, 510.64it/s]
+Processed prompts:   0%|          | 0/4 [00:00<?, ?it/s, est. speed input: 0.00 toks/s, output: 0.00 toks/s]Processed prompts:  25%|██▌       | 1/4 [00:00<00:01,  1.82it/s, est. speed input: 7.30 toks/s, output: 87.58 toks/s]Processed prompts: 100%|██████████| 4/4 [00:00<00:00,  1.82it/s, est. speed input: 46.92 toks/s, output: 346.47 toks/s]Processed prompts: 100%|██████████| 4/4 [00:00<00:00,  7.21it/s, est. speed input: 46.92 toks/s, output: 346.47 toks/s]
+RE_SHAPE (51, 30, 8)
+RE_SHAPE (58, 30, 8)
+RE_SHAPE (54, 30, 8)
+RE_SHAPE (51, 30, 8)
+ROUTED_NONE=0 STEPS=214
+UNION_MIN=100 UNION_MAX=121 MEAN=111.14
+GATE0_COUNTER_OK=True RANGE_OK=True PASSED=True
+GATE0_DONE
+(EngineCore pid=4972) INFO 08-04 13:54:48 [core.py:1332] [shutdown] EngineCore: trigger received signal=SIGTERM
+(EngineCore pid=4972) INFO 08-04 13:54:48 [core.py:1468] [shutdown] EngineCore: start mode=abort timeout=0s
+(EngineCore pid=4972) INFO 08-04 13:54:48 [core.py:1499] [shutdown] EngineCore: request processing complete; starting resource teardown
+(EngineCore pid=4972) INFO 08-04 13:54:48 [core.py:1345] [shutdown] EngineCore: exiting busy loop
+WARNING 08-04 13:54:50 [core_client.py:725] [shutdown] MPClient: engine core exited unexpectedly; starting cleanup
+INFO 08-04 13:54:50 [core_client.py:686] [shutdown] MPClient: start timeout=default
+INFO 08-04 13:54:50 [core_client.py:688] [shutdown] MPClient: stopping engine manager
+INFO 08-04 13:54:50 [core_client.py:690] [shutdown] MPClient: engine manager stopped
+INFO 08-04 13:54:50 [core_client.py:691] [shutdown] MPClient: cleaning up background resources
+INFO 08-04 13:54:50 [core_client.py:693] [shutdown] MPClient: complete
