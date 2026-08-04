@@ -218,3 +218,32 @@ def test_record_step_routing_counts_one_call_per_step():
     c.record_step_routing([[[2]], [[3]]])
     assert c.call_count == 2
     assert len(c.union_per_step) == 2
+
+
+# ----- wrap() is signature-agnostic against the real select_experts sig -----
+# Real: select_experts(self, hidden_states, router_logits,
+#                      topk_indices_dtype=None, *, input_ids=None) -> (weights, ids)
+# (vllm/model_executor/layers/fused_moe/router/fused_moe_router.py:45-81)
+
+class _RealSigRouter:
+    def select_experts(
+        self, hidden_states, router_logits, topk_indices_dtype=None, *, input_ids=None
+    ):
+        return [[1.0, 1.0]], [[3, 7]]
+
+
+def test_wrap_handles_real_select_experts_signature():
+    """wrap() forwards *args/**kwargs verbatim, so the real positional +
+    keyword-only signature passes through without a TypeError, and topk_ids
+    (return index 1) is captured. This is the free, source-anchored check for
+    the fallback monkeypatch path; the capturer path never touches this."""
+    c = ExpertUnionCollector()
+    wrapped = c.wrap(_RealSigRouter().select_experts)
+
+    w, ids = wrapped("hidden", "logits", None, input_ids="ids")  # full real call
+    assert ids == [[3, 7]]
+    assert w == [[1.0, 1.0]]
+
+    wrapped("hidden", "logits")  # minimal positional call
+    assert c.call_count == 2
+    assert c.end_step() == 2  # {3,7}

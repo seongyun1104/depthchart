@@ -8,6 +8,28 @@ assumption entirely. Do not run any campaign measurement before Gate 0 passes.
 Spec (confirmed): num_experts **128**, top_k_experts **8**, num_hidden_layers **30**,
 text-only workload (vision path idle — state it in the report).
 
+## Preflight (CPU-init, before any model load — near-zero GPU cost)
+
+Applies "don't debug the hook on GPU time" to the signature/shape risk. Run these
+the instant vLLM imports, before loading the 26B model:
+
+```python
+import inspect
+from vllm.model_executor.layers.fused_moe.router.fused_moe_router import FusedMoERouter
+from vllm.v1.outputs import RoutedExpertsTensors
+# 1. select_experts signature (fallback monkeypatch path). Expected on the pinned
+#    head: (self, hidden_states, router_logits, topk_indices_dtype=None, *, input_ids=None).
+print("select_experts:", inspect.signature(FusedMoERouter.select_experts))
+# 2. capturer output contract (primary path).
+print("RoutedExpertsTensors fields:", RoutedExpertsTensors._fields)  # ('routing_data','slot_mapping')
+```
+
+`wrap()` is `*args/**kwargs` passthrough (signature-agnostic — locked by
+`test_wrap_handles_real_select_experts_signature`), so an arg-order change cannot
+raise here; the print is a drift tripwire only. If either differs from the above,
+adjust before spending GPU time. The **primary** path is the capturer
+(`record_step_routing`), which never touches `select_experts`.
+
 ## Mechanism (supersedes the design doc's monkeypatch 2-pass)
 
 Use the **built-in** `RoutedExpertsCapturer`: serve with
@@ -57,9 +79,21 @@ spec confirm) then the §4.2-4.4 measurement grid. Verdict follows the §7 pre-r
 decision matrix (∂union/∂K regime map + TPOT). Raw JSON → depthchart; report =
 regime-map figure + P1-P5.
 
-## Session placement
+## Session placement + time budget
 
-This session's H100 rental runs (design order): DSpark H100 smoke → Phase 2A collect →
-**this Gate 0 on real gemma-4-26b-a4b**. Green here means the MoE-dedicated measurement
-session becomes a data-driven go/no-go. `#49652` gates only the separate V2 3-step
-check, not this.
+This session's H100 rental runs (design order): DSpark H100 smoke (Qwen3 vehicle) →
+Phase 2A collect → **this Gate 0 on real gemma-4-26b-a4b**. Green here means the
+MoE-dedicated measurement session becomes a data-driven go/no-go. `#49652` gates only
+the separate V2 3-step check, not this.
+
+**Time rider:** budget the Gate 0 slot at **40 min, not 30** — if compile-swallow is
+demonstrated (as predicted) the eager 2-pass re-verification must finish in the same
+slot, and an eager server restart costs 5-7 min. If the session runs short,
+**sacrifice the composition taster (item 4), not Gate 0** — Gate 0 is the go/no-go
+gate; a half result leaves one whole session objective unmet.
+
+**Publish discipline (smoke B comment):** if the DSpark smoke succeeds, draft the
+enablement (B) comment **in-session only**. Publishing waits until outside the session,
+through the gate: live re-fetch + comment-budget judgement (is stacking a 2nd comment
+on a PR whose 1st comment has 0 human reaction yet the right moment?). Good numbers make
+you want to rush — that is exactly when the budget rule applies.
