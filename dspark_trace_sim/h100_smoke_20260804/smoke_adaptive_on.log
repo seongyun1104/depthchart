@@ -1,0 +1,132 @@
+INFO 08-04 12:20:55 [api_utils.py:273] non-default args: {'tokenizer': '/workspace/models/target', 'trust_remote_code': True, 'max_model_len': 8192, 'enable_prefix_caching': False, 'gpu_memory_utilization': 0.85, 'max_num_seqs': 32, 'enforce_eager': True, 'speculative_config': {'method': 'dspark', 'model': '/workspace/models/draft', 'num_speculative_tokens': 7, 'draft_sample_method': 'probabilistic'}, 'model': '/workspace/models/target'}
+INFO 08-04 12:21:03 [model.py:641] Resolved architecture: Gemma4UnifiedForConditionalGeneration
+INFO 08-04 12:21:03 [model.py:1879] Using max model len 8192
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'full_attention', 'sliding_attention'}
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'full_attention', 'sliding_attention'}
+[transformers] Unrecognized keys in `rope_parameters` for 'rope_type'='default': {'full_attention', 'sliding_attention'}
+INFO 08-04 12:21:12 [model.py:641] Resolved architecture: Gemma4DSparkModel
+INFO 08-04 12:21:12 [model.py:1879] Using max model len 262144
+INFO 08-04 12:21:12 [speculative.py:1172] Overriding draft model max model len from 262144 to 8192
+INFO 08-04 12:21:21 [scheduler.py:242] Chunked prefill is enabled with max_num_batched_tokens=16384.
+INFO 08-04 12:21:21 [config.py:231] Gemma4 model has heterogeneous head dimensions (head_dim=256, global_head_dim=512). Using FA4 for all layers to avoid mixed FA3/FA4 penalty.
+INFO 08-04 12:21:21 [vllm.py:1145] Asynchronous scheduling is enabled.
+WARNING 08-04 12:21:21 [vllm.py:1199] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+WARNING 08-04 12:21:21 [vllm.py:1252] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+INFO 08-04 12:21:21 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+INFO 08-04 12:21:21 [vllm.py:1431] Cudagraph is disabled under eager mode
+WARNING 08-04 12:21:21 [cuda.py:323] Forcing --disable_chunked_mm_input for models with multimodal-bidirectional attention.
+INFO 08-04 12:21:21 [compilation.py:329] Enabled custom fusions: norm_quant, act_quant
+(EngineCore pid=4069) INFO 08-04 12:21:33 [core.py:121] Initializing a V1 LLM engine (v0.26.1rc1.dev222+ge399e1c7c) with config: model='/workspace/models/target', speculative_config=SpeculativeConfig(method='dspark', model='/workspace/models/draft', num_spec_tokens=7), tokenizer='/workspace/models/target', skip_tokenizer_init=False, tokenizer_mode=auto, revision=None, tokenizer_revision=None, trust_remote_code=True, dtype=torch.bfloat16, max_seq_len=8192, download_dir=None, load_format=auto, tensor_parallel_size=1, pipeline_parallel_size=1, data_parallel_size=1, decode_context_parallel_size=1, dcp_comm_backend=ag_rs, disable_custom_all_reduce=False, quantization=None, quantization_config=None, enforce_eager=True, enable_return_routed_experts=False, kv_cache_dtype=auto, device_config=cuda, structured_outputs_config=StructuredOutputsConfig(backend='auto', disable_any_whitespace=False, disable_additional_properties=False, reasoning_parser='', reasoning_parser_plugin='', enable_in_reasoning=False), observability_config=ObservabilityConfig(show_hidden_metrics_for_version=None, otlp_traces_endpoint=None, collect_detailed_traces=None, kv_cache_metrics=False, kv_cache_metrics_sample=0.01, cudagraph_metrics=False, enable_layerwise_nvtx_tracing=False, enable_mfu_metrics=False, enable_mm_processor_stats=False, enable_logging_iteration_details=False, jit_monitor_mode='warn', jit_monitor_verbose=False), seed=0, served_model_name=/workspace/models/target, enable_prefix_caching=False, enable_chunked_prefill=True, pooler_config=None, compilation_config={'mode': <CompilationMode.NONE: 0>, 'debug_dump_path': None, 'cache_dir': '', 'compile_cache_save_format': 'binary', 'backend': 'inductor', 'custom_ops': ['all'], 'ir_enable_torch_wrap': False, 'splitting_ops': [], 'compile_mm_encoder': False, 'cudagraph_mm_encoder': False, 'encoder_cudagraph_token_budgets': [], 'encoder_cudagraph_max_vision_items_per_batch': 0, 'encoder_cudagraph_max_frames_per_batch': None, 'compile_sizes': [], 'compile_ranges_endpoints': [16384], 'inductor_compile_config': {'enable_auto_functionalized_v2': False, 'combo_kernels': True, 'benchmark_combo_kernel': True}, 'inductor_passes': {}, 'cudagraph_mode': <CUDAGraphMode.NONE: 0>, 'cudagraph_num_of_warmups': 0, 'cudagraph_capture_sizes': [], 'cudagraph_copy_inputs': False, 'cudagraph_specialize_lora': True, 'use_inductor_graph_partition': False, 'pass_config': {'fuse_norm_quant': True, 'fuse_act_quant': True, 'fuse_attn_quant': False, 'enable_sp': False, 'fuse_gemm_comms': False, 'fuse_allreduce_rms': False, 'enable_qk_norm_rope_fusion': False, 'fuse_rope_kvcache_cat_mla': False, 'fuse_act_padding': False, 'fuse_qk_norm_rope_kvcache': False}, 'max_cudagraph_capture_size': 0, 'dynamic_shapes_config': {'type': <DynamicShapesType.BACKED: 'backed'>, 'evaluate_guards': False, 'assume_32_bit_indexing': False}, 'local_cache_dir': None, 'fast_moe_cold_start': False, 'static_all_moe_layers': []}, kernel_config=KernelConfig(ir_op_priority=IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native']), enable_flashinfer_autotune=True, enable_cutedsl_warmup=True, enable_jit_warmup=True, enable_bf16x3_router_gemm=False, moe_backend='auto', linear_backend='auto')
+(EngineCore pid=4069) INFO 08-04 12:21:34 [parallel_state.py:1640] world_size=1 rank=0 local_rank=0 distributed_init_method=tcp://172.17.0.3:43521 backend=nccl
+(EngineCore pid=4069) INFO 08-04 12:21:34 [parallel_state.py:1977] rank 0 in world size 1 is assigned as DP rank 0, PP rank 0, PCP rank 0, TP rank 0, EP rank N/A, EPLB rank N/A
+(EngineCore pid=4069) INFO 08-04 12:21:34 [gpu_worker.py:385] Using V2 Model Runner
+(EngineCore pid=4069) INFO 08-04 12:21:35 [model_runner.py:321] Loading model from scratch...
+(EngineCore pid=4069) WARNING 08-04 12:21:35 [vllm.py:1199] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(EngineCore pid=4069) WARNING 08-04 12:21:35 [vllm.py:1252] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(EngineCore pid=4069) INFO 08-04 12:21:35 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(EngineCore pid=4069) INFO 08-04 12:21:35 [vllm.py:1431] Cudagraph is disabled under eager mode
+(EngineCore pid=4069) INFO 08-04 12:21:36 [cuda.py:482] Using FLASH_ATTN attention backend out of potential backends: ['FLASH_ATTN', 'TRITON_ATTN', 'FLEX_ATTENTION'].
+(EngineCore pid=4069) INFO 08-04 12:21:36 [flash_attn.py:789] Using FlashAttention version 4
+(EngineCore pid=4069) INFO 08-04 12:21:36 [weight_utils.py:867] Filesystem type for checkpoints: OVERLAY. Checkpoint size: 22.28 GiB. Available RAM: 459.59 GiB.
+(EngineCore pid=4069) INFO 08-04 12:21:36 [weight_utils.py:890] Auto-prefetch is disabled because the filesystem (OVERLAY) is not a recognized network FS (NFS/Lustre). If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
+(EngineCore pid=4069) Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+(EngineCore pid=4069) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:02<00:00,  2.23s/it]
+(EngineCore pid=4069) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:02<00:00,  2.23s/it]
+(EngineCore pid=4069) 
+(EngineCore pid=4069) INFO 08-04 12:21:39 [default_loader.py:430] Loading weights took 2.87 seconds
+(EngineCore pid=4069) INFO 08-04 12:21:39 [eagle3_utils.py:28] Using Eagle3 auxiliary layers from config: (6, 18, 30, 42, 47)
+(EngineCore pid=4069) WARNING 08-04 12:21:39 [vllm.py:1199] Enforce eager set, disabling torch.compile and CUDAGraphs. This is equivalent to setting -cc.mode=none -cc.cudagraph_mode=none
+(EngineCore pid=4069) WARNING 08-04 12:21:39 [vllm.py:1252] Inductor compilation was disabled by user settings, optimizations settings that are only active during inductor compilation will be ignored.
+(EngineCore pid=4069) INFO 08-04 12:21:39 [kernel.py:306] Final IR op priority after setting platform defaults: IrOpPriorityConfig(rms_norm=['vllm_c', 'native'], fused_add_rms_norm=['vllm_c', 'native'])
+(EngineCore pid=4069) INFO 08-04 12:21:39 [vllm.py:1431] Cudagraph is disabled under eager mode
+(EngineCore pid=4069) INFO 08-04 12:21:39 [weight_utils.py:867] Filesystem type for checkpoints: OVERLAY. Checkpoint size: 6.39 GiB. Available RAM: 459.59 GiB.
+(EngineCore pid=4069) Loading safetensors checkpoint shards:   0% Completed | 0/1 [00:00<?, ?it/s]
+(EngineCore pid=4069) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  1.62it/s]
+(EngineCore pid=4069) Loading safetensors checkpoint shards: 100% Completed | 1/1 [00:00<00:00,  1.62it/s]
+(EngineCore pid=4069) 
+(EngineCore pid=4069) INFO 08-04 12:21:40 [default_loader.py:430] Loading weights took 0.80 seconds
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349] EngineCore failed to start.
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349] Traceback (most recent call last):
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/v1/engine/core.py", line 1318, in run_engine_core
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     return func(*args, **kwargs)
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/v1/engine/core.py", line 1074, in __init__
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     super().__init__(
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/v1/engine/core.py", line 132, in __init__
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     self.model_executor = executor_class(vllm_config)
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     return func(*args, **kwargs)
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/v1/executor/abstract.py", line 109, in __init__
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     self._init_executor()
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/v1/executor/uniproc_executor.py", line 68, in _init_executor
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     self.driver_worker.load_model()
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/v1/worker/gpu_worker.py", line 442, in load_model
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/v1/worker/gpu/model_runner.py", line 335, in load_model
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     self.speculator.load_model(self.model)
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/v1/worker/gpu/spec_decode/speculator.py", line 156, in load_model
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     self.model = self.load_draft_model(target_model, target_attn_layer_names)
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/workspace/vllm_src/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py", line 108, in load_draft_model
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     if self.use_adaptive_verification and model.model.confidence_head is None:
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]   File "/venv/main/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1967, in __getattr__
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349]     raise AttributeError(
+(EngineCore pid=4069) ERROR 08-04 12:21:40 [core.py:1349] AttributeError: 'Gemma4DSparkModel' object has no attribute 'confidence_head'
+(EngineCore pid=4069) Process EngineCore:
+(EngineCore pid=4069) Traceback (most recent call last):
+(EngineCore pid=4069)   File "/usr/lib/python3.10/multiprocessing/process.py", line 314, in _bootstrap
+(EngineCore pid=4069)     self.run()
+(EngineCore pid=4069)   File "/usr/lib/python3.10/multiprocessing/process.py", line 108, in run
+(EngineCore pid=4069)     self._target(*self._args, **self._kwargs)
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/engine/core.py", line 1353, in run_engine_core
+(EngineCore pid=4069)     raise e
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/engine/core.py", line 1318, in run_engine_core
+(EngineCore pid=4069)     engine_core = EngineCoreProc(*args, engine_index=dp_rank, **kwargs)
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=4069)     return func(*args, **kwargs)
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/engine/core.py", line 1074, in __init__
+(EngineCore pid=4069)     super().__init__(
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/engine/core.py", line 132, in __init__
+(EngineCore pid=4069)     self.model_executor = executor_class(vllm_config)
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/tracing/otel.py", line 178, in sync_wrapper
+(EngineCore pid=4069)     return func(*args, **kwargs)
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/executor/abstract.py", line 109, in __init__
+(EngineCore pid=4069)     self._init_executor()
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/executor/uniproc_executor.py", line 68, in _init_executor
+(EngineCore pid=4069)     self.driver_worker.load_model()
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/worker/gpu_worker.py", line 442, in load_model
+(EngineCore pid=4069)     self.model_runner.load_model(load_dummy_weights=load_dummy_weights)
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/worker/gpu/model_runner.py", line 335, in load_model
+(EngineCore pid=4069)     self.speculator.load_model(self.model)
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/worker/gpu/spec_decode/speculator.py", line 156, in load_model
+(EngineCore pid=4069)     self.model = self.load_draft_model(target_model, target_attn_layer_names)
+(EngineCore pid=4069)   File "/workspace/vllm_src/vllm/v1/worker/gpu/spec_decode/dspark/speculator.py", line 108, in load_draft_model
+(EngineCore pid=4069)     if self.use_adaptive_verification and model.model.confidence_head is None:
+(EngineCore pid=4069)   File "/venv/main/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1967, in __getattr__
+(EngineCore pid=4069)     raise AttributeError(
+(EngineCore pid=4069) AttributeError: 'Gemma4DSparkModel' object has no attribute 'confidence_head'
+SMOKE_FAIL
+Traceback (most recent call last):
+  File "/workspace/smoke.py", line 4, in <module>
+    llm = LLM(
+  File "/workspace/vllm_src/vllm/entrypoints/llm.py", line 339, in __init__
+    self.llm_engine = LLMEngine.from_engine_args(
+  File "/workspace/vllm_src/vllm/v1/engine/llm_engine.py", line 179, in from_engine_args
+    return cls(
+  File "/workspace/vllm_src/vllm/v1/engine/llm_engine.py", line 105, in __init__
+    self.engine_core = EngineCoreClient.make_client(
+  File "/workspace/vllm_src/vllm/v1/engine/core_client.py", line 110, in make_client
+    return SyncMPClient(vllm_config, executor_class, log_stats)
+  File "/workspace/vllm_src/vllm/tracing/otel.py", line 178, in sync_wrapper
+    return func(*args, **kwargs)
+  File "/workspace/vllm_src/vllm/v1/engine/core_client.py", line 809, in __init__
+    super().__init__(
+  File "/workspace/vllm_src/vllm/v1/engine/core_client.py", line 609, in __init__
+    with launch_core_engines(
+  File "/usr/lib/python3.10/contextlib.py", line 142, in __exit__
+    next(self.gen)
+  File "/workspace/vllm_src/vllm/v1/engine/utils.py", line 1195, in launch_core_engines
+    wait_for_engine_startup(
+  File "/workspace/vllm_src/vllm/v1/engine/utils.py", line 1254, in wait_for_engine_startup
+    raise RuntimeError(
+RuntimeError: Engine core initialization failed. See root cause above. Failed core proc(s): {}
