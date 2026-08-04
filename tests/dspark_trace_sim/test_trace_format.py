@@ -14,7 +14,6 @@ from dspark_trace_sim.trace_format import (
     write_trace,
 )
 
-
 _PROVENANCE_KWARGS = {
     "deepspec_commit": "005e03b81cec38b7da6399833d609ee89a2587f2",
     "checkpoint_id": "deepseek-ai/dspark_gemma4_12b_block7",

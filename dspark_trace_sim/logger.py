@@ -60,7 +60,7 @@ class TraceLogger:
         self._dataset = None
         self._step_idx = 0
 
-    def __enter__(self) -> "TraceLogger":
+    def __enter__(self) -> TraceLogger:
         return self
 
     def __exit__(self, *_exc) -> None:

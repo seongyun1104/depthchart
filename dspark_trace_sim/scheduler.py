@@ -110,10 +110,8 @@ def admit_top_k(
         return lengths
 
     survivals = _survival_candidates(confidences)
-    admitted = 0
-    for _cum, r, j in survivals:
+    for admitted, (_cum, r, j) in enumerate(survivals):
         if admitted >= budget:
             break
         lengths[r] = j + 1
-        admitted += 1
     return lengths

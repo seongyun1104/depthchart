@@ -10,7 +10,6 @@ from dspark_trace_sim.deepspec_adapter import to_plain_arrays
 from dspark_trace_sim.logger import TraceLogger
 from dspark_trace_sim.trace_format import Provenance, read_trace
 
-
 _PROVENANCE_KWARGS = {
     "deepspec_commit": "005e03b81cec38b7da6399833d609ee89a2587f2",
     "checkpoint_id": "deepseek-ai/dspark_gemma4_12b_block7",
@@ -56,7 +55,7 @@ def test_adapter_applies_sigmoid_to_confidences():
 
     expected = [1.0 / (1.0 + math.exp(-x)) for x in logits]
     assert len(confidences) == len(expected)
-    for got, want in zip(confidences, expected):
+    for got, want in zip(confidences, expected, strict=True):
         assert math.isclose(got, want, rel_tol=1e-6, abs_tol=1e-6)
     assert accepts == [1, 0, 0]
     assert prefix_len == 1

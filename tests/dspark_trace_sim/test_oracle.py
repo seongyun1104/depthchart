@@ -12,7 +12,6 @@ from dspark_trace_sim.oracle import (
     wasted_verification_ratio,
 )
 
-
 # ----- oracle_lengths -----
 
 def test_oracle_length_equals_leading_ones():
@@ -130,12 +129,14 @@ def test_no_policy_beats_oracle_on_both_components(seed):
             # (Both may be 0 only when the whole batch has zero oracle_len
             #  and zero admissions, which is exactly the oracle case there.)
             has_oracle_accepts = any(_leading_ones(row) > 0 for row in accepts)
-            has_any_admission = any(l > 0 for l in policy)
+            has_any_admission = any(ell > 0 for ell in policy)
             deviates_by_over = any(
-                l > _leading_ones(row) for l, row in zip(policy, accepts)
+                ell > _leading_ones(row)
+                for ell, row in zip(policy, accepts, strict=True)
             )
             deviates_by_under = any(
-                l < _leading_ones(row) for l, row in zip(policy, accepts)
+                ell < _leading_ones(row)
+                for ell, row in zip(policy, accepts, strict=True)
             )
 
             if deviates_by_over:

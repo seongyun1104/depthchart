@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 import json
+from collections.abc import Iterable
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
@@ -27,7 +27,7 @@ class Provenance(BaseModel):
         return json.dumps(payload, sort_keys=True)
 
     @classmethod
-    def from_jsonl_line(cls, line: str) -> "Provenance":
+    def from_jsonl_line(cls, line: str) -> Provenance:
         data = json.loads(line)
         if not data.pop("__provenance__", False):
             raise ValueError(
@@ -66,7 +66,7 @@ class StepRecord(BaseModel):
         return v
 
     @model_validator(mode="after")
-    def _check_invariants(self) -> "StepRecord":
+    def _check_invariants(self) -> StepRecord:
         if len(self.confidences) != len(self.accepts):
             raise ValueError(
                 f"confidences length {len(self.confidences)} != "
@@ -89,7 +89,7 @@ class StepRecord(BaseModel):
         return json.dumps(self.model_dump(), sort_keys=True)
 
     @classmethod
-    def from_jsonl_line(cls, line: str) -> "StepRecord":
+    def from_jsonl_line(cls, line: str) -> StepRecord:
         return cls.model_validate_json(line)
 
 

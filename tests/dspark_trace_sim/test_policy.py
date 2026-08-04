@@ -142,5 +142,5 @@ def test_ema_matches_documented_recurrence():
 
     signal = signal_from_history(history, current_step=2, policy=policy)
 
-    for got, want in zip(signal[0], expected):
+    for got, want in zip(signal[0], expected, strict=True):
         assert math.isclose(got, want, rel_tol=1e-9, abs_tol=1e-9)
