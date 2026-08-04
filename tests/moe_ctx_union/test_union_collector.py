@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import random
+
 import pytest
 
 from moe_ctx_union.union_collector import (
@@ -172,3 +174,47 @@ def test_gate0_empty_is_not_passing():
     rep = gate0_check(c, expected_calls=0)
     assert not rep.range_ok
     assert not rep.passed
+
+
+# ----- capturer path: RoutedExpertsTensors.routing_data 3D shape -----
+# routing_data shape = (num_scheduled_tokens, num_layers, num_experts_per_tok)
+
+def test_record_step_routing_folds_all_tokens_layers_k():
+    c = ExpertUnionCollector(num_experts=128, top_k=2)
+    # 2 tokens x 2 layers x 2 experts; distinct = {0,1,2,3,4,5,9}
+    routing_data = [
+        [[0, 1], [2, 3]],   # token 0: layer0={0,1}, layer1={2,3}
+        [[1, 4], [5, 9]],   # token 1
+    ]
+    union = c.record_step_routing(routing_data)
+    assert union == 7
+    assert c.union_per_step == [7]
+
+
+def test_record_step_routing_tensor_like():
+    c = ExpertUnionCollector(top_k=2)
+    routing_data = _FakeTensor([[[0, 1], [1, 2]], [[3, 4], [4, 0]]])
+    assert c.record_step_routing(routing_data) == 5  # {0,1,2,3,4}
+
+
+def test_record_step_routing_gemma_shape_passes_gate0():
+    """Realistic gemma-4-26b-a4b step: (tokens, 30 layers, top-8), union in [8,128]."""
+    rng = random.Random(0)
+    c = ExpertUnionCollector(num_experts=128, top_k=8)
+    for _ in range(20):  # 20 decode steps
+        routing_data = [
+            [rng.sample(range(128), 8) for _ in range(30)]  # 30 layers x top-8
+            for _ in range(4)  # 4 scheduled tokens
+        ]
+        c.record_step_routing(routing_data)
+    rep = gate0_check(c, expected_calls=20)
+    assert rep.passed
+    assert rep.union_min >= 8 and rep.union_max <= 128
+
+
+def test_record_step_routing_counts_one_call_per_step():
+    c = ExpertUnionCollector(top_k=1)
+    c.record_step_routing([[[0]], [[1]]])
+    c.record_step_routing([[[2]], [[3]]])
+    assert c.call_count == 2
+    assert len(c.union_per_step) == 2

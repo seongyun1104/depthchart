@@ -37,6 +37,17 @@ def to_expert_rows(topk_ids) -> list[list[int]]:
     return rows
 
 
+def _iter_ids(obj):
+    """Yield leaf ints from a tensor-like / arbitrarily nested sequence."""
+    if hasattr(obj, "tolist"):
+        obj = obj.tolist()
+    if isinstance(obj, int):
+        yield obj
+        return
+    for x in obj:
+        yield from _iter_ids(x)
+
+
 @dataclass
 class ExpertUnionCollector:
     num_experts: int = 128
@@ -50,6 +61,23 @@ class ExpertUnionCollector:
         self._call_count += 1
         for tok in to_expert_rows(topk_ids):
             self._step_experts.update(tok)
+
+    def record_step_routing(self, routing_data) -> int:
+        """Ingest one step from the built-in RoutedExpertsCapturer.
+
+        ``routing_data`` is ``RoutedExpertsTensors.routing_data`` (v1/outputs.py),
+        shape ``(num_scheduled_tokens, num_layers, num_experts_per_tok)`` — every
+        MoE layer for one decode step in a single tensor. Folds all
+        ``(token, layer, k)`` entries into the step union and closes the step.
+
+        This is the ``enable_return_routed_experts=True`` path. Because the
+        capturer delivers all layers per step at once, the per-call counter /
+        trace-once guard does **not** apply here — that guard covers only the
+        ``select_experts`` monkeypatch path (``record`` / ``wrap``).
+        """
+        self._step_experts.update(_iter_ids(routing_data))
+        self._call_count += 1
+        return self.end_step()
 
     def end_step(self) -> int:
         """Close the current decode step; returns and logs its union size."""

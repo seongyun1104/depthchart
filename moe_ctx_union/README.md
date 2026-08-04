@@ -23,6 +23,18 @@ inside the forward — compiled-path safe, so the trace-once trap does not apply
 `ExpertUnionCollector.wrap()` + the per-call counter are the trace-once sanity
 check and a monkeypatch fallback; the collector consumes `topk_ids` either way.
 
+**Capturer output shape (confirmed, v1/outputs.py:140).** `RoutedExpertsTensors`
+carries `routing_data` of shape
+**`(num_scheduled_tokens, num_layers, num_experts_per_tok)`** (step-level, across
+all requests) + `slot_mapping` `(num_scheduled_tokens,)`; the scheduler ingests it
+via `routed_experts_mgr.store_batch(routing_data, slot_mapping)` (scheduler.py:1716).
+Feed `routing_data` per step into `ExpertUnionCollector.record_step_routing()` — it
+folds every `(token, layer, k)` into that step's union in one call. The per-call
+counter / trace-once guard applies only to the `wrap()` monkeypatch path, since the
+capturer already delivers all layers per step. (This interface conformance is the
+free, source-anchored substitute for the local "CPU vLLM" test — no macOS vLLM
+wheel exists, so the collector is pinned to the real tensor shape instead.)
+
 **Spec (Gate 0 cond. 3 / design §4.1, resolves the "25.2B/26B" ambiguity).**
 `google/gemma-4-26b-a4b-it` `text_config`: **num_experts = 128, top_k_experts = 8,
 num_hidden_layers = 30**, hidden_size 2816. So the Gate 0 union range is
