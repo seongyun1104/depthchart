@@ -1,0 +1,11 @@
+{
+  "elapsed_sec": 24.09792447090149,
+  "spec_decode_num_drafts_delta": 11404.0,
+  "spec_decode_num_draft_tokens_delta": 32770.0,
+  "spec_decode_num_accepted_tokens_delta": 14211.0,
+  "num_preemptions_delta": 0.0,
+  "prefix_cache_queries_delta": 254976.0,
+  "prefix_cache_hits_delta": 231904.0,
+  "generation_tokens_delta": 25600.0,
+  "prompt_tokens_delta": 254976.0
+}

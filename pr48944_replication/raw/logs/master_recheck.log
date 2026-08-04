@@ -1,0 +1,21 @@
+
+========== ARM: C_prime_recheck_c192 :: PHASES: ['phase4'] ==========
+[C_prime_recheck_c192] server PID=94502, waiting for /health (timeout=600s)...
+    [C_prime_recheck_c192] still waiting... elapsed=30s
+    [C_prime_recheck_c192] still waiting... elapsed=60s
+    [C_prime_recheck_c192] still waiting... elapsed=90s
+    [C_prime_recheck_c192] still waiting... elapsed=120s
+[C_prime_recheck_c192] server READY after 145.0s
+    [C_prime_recheck_c192] Phase 0 metrics snapshot saved
+    [C_prime_recheck_c192] cold-start burn (short random, c=64, 2 rounds)...
+    [C_prime_recheck_c192][burn_0] elapsed=31.4s rc=0
+    [C_prime_recheck_c192][burn_1] elapsed=18.6s rc=0
+    [C_prime_recheck_c192][ctx=400][warmup_0] elapsed=22.0s rc=0
+    [C_prime_recheck_c192][ctx=400][warmup_1] elapsed=19.9s rc=0
+    [C_prime_recheck_c192][ctx=400][warmup_2] elapsed=20.7s rc=0
+    [C_prime_recheck_c192][ctx=400][measure_0] elapsed=18.9s rc=0
+    [C_prime_recheck_c192][ctx=400][measure_1] elapsed=19.1s rc=0
+    [C_prime_recheck_c192][ctx=400][measure_2] elapsed=20.0s rc=0
+    server killed, waiting KV free...
+
+========== ALL DONE ==========

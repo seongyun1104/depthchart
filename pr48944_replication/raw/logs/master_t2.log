@@ -1,0 +1,150 @@
+
+========== ARM: A_prime :: PHASES: ['phase4'] ==========
+[A_prime] server PID=53890, waiting for /health (timeout=600s)...
+    [A_prime] still waiting... elapsed=30s
+    [A_prime] still waiting... elapsed=60s
+    [A_prime] still waiting... elapsed=90s
+    [A_prime] still waiting... elapsed=120s
+[A_prime] server READY after 145.0s
+    [A_prime] Phase 0 metrics snapshot saved
+    [A_prime] cold-start burn (short random, c=64, 2 rounds)...
+    [A_prime][burn_0] elapsed=31.6s rc=0
+    [A_prime][burn_1] elapsed=20.1s rc=0
+    [A_prime][ctx=400][warmup_0] elapsed=25.6s rc=0
+    [A_prime][ctx=400][warmup_1] elapsed=25.0s rc=0
+    [A_prime][ctx=400][warmup_2] elapsed=22.4s rc=0
+    [A_prime][ctx=400][measure_0] elapsed=22.6s rc=0
+    [A_prime][ctx=400][measure_1] elapsed=23.3s rc=0
+    [A_prime][ctx=400][measure_2] elapsed=23.8s rc=0
+    [A_prime][ctx=900][warmup_0] elapsed=30.5s rc=0
+    [A_prime][ctx=900][warmup_1] elapsed=29.2s rc=0
+    [A_prime][ctx=900][warmup_2] elapsed=27.0s rc=0
+    [A_prime][ctx=900][measure_0] elapsed=28.0s rc=0
+    [A_prime][ctx=900][measure_1] elapsed=27.5s rc=0
+    [A_prime][ctx=900][measure_2] elapsed=25.8s rc=0
+    [A_prime][ctx=1900][warmup_0] elapsed=32.3s rc=0
+    [A_prime][ctx=1900][warmup_1] elapsed=26.8s rc=0
+    [A_prime][ctx=1900][warmup_2] elapsed=27.3s rc=0
+    [A_prime][ctx=1900][measure_0] elapsed=27.2s rc=0
+    [A_prime][ctx=1900][measure_1] elapsed=27.3s rc=0
+    [A_prime][ctx=1900][measure_2] elapsed=26.0s rc=0
+    [A_prime][ctx=4000][warmup_0] elapsed=31.9s rc=0
+    [A_prime][ctx=4000][warmup_1] elapsed=30.4s rc=0
+    [A_prime][ctx=4000][warmup_2] elapsed=28.6s rc=0
+    [A_prime][ctx=4000][measure_0] elapsed=29.9s rc=0
+    [A_prime][ctx=4000][measure_1] elapsed=29.9s rc=0
+    [A_prime][ctx=4000][measure_2] elapsed=28.5s rc=0
+    server killed, waiting KV free...
+
+========== ARM: static_k3 :: PHASES: ['phase4'] ==========
+[static_k3] server PID=64140, waiting for /health (timeout=600s)...
+    [static_k3] still waiting... elapsed=30s
+    [static_k3] still waiting... elapsed=60s
+    [static_k3] still waiting... elapsed=90s
+    [static_k3] still waiting... elapsed=120s
+[static_k3] server READY after 145.0s
+    [static_k3] Phase 0 metrics snapshot saved
+    [static_k3] cold-start burn (short random, c=64, 2 rounds)...
+    [static_k3][burn_0] elapsed=29.8s rc=0
+    [static_k3][burn_1] elapsed=18.7s rc=0
+    [static_k3][ctx=400][warmup_0] elapsed=24.3s rc=0
+    [static_k3][ctx=400][warmup_1] elapsed=21.4s rc=0
+    [static_k3][ctx=400][warmup_2] elapsed=19.9s rc=0
+    [static_k3][ctx=400][measure_0] elapsed=21.1s rc=0
+    [static_k3][ctx=400][measure_1] elapsed=20.4s rc=0
+    [static_k3][ctx=400][measure_2] elapsed=20.2s rc=0
+    [static_k3][ctx=900][warmup_0] elapsed=26.0s rc=0
+    [static_k3][ctx=900][warmup_1] elapsed=23.6s rc=0
+    [static_k3][ctx=900][warmup_2] elapsed=23.7s rc=0
+    [static_k3][ctx=900][measure_0] elapsed=23.5s rc=0
+    [static_k3][ctx=900][measure_1] elapsed=24.0s rc=0
+    [static_k3][ctx=900][measure_2] elapsed=23.1s rc=0
+    [static_k3][ctx=1900][warmup_0] elapsed=25.6s rc=0
+    [static_k3][ctx=1900][warmup_1] elapsed=24.6s rc=0
+    [static_k3][ctx=1900][warmup_2] elapsed=25.1s rc=0
+    [static_k3][ctx=1900][measure_0] elapsed=23.9s rc=0
+    [static_k3][ctx=1900][measure_1] elapsed=23.8s rc=0
+    [static_k3][ctx=1900][measure_2] elapsed=22.8s rc=0
+    [static_k3][ctx=4000][warmup_0] elapsed=25.4s rc=0
+    [static_k3][ctx=4000][warmup_1] elapsed=25.2s rc=0
+    [static_k3][ctx=4000][warmup_2] elapsed=24.4s rc=0
+    [static_k3][ctx=4000][measure_0] elapsed=25.4s rc=0
+    [static_k3][ctx=4000][measure_1] elapsed=24.4s rc=0
+    [static_k3][ctx=4000][measure_2] elapsed=24.2s rc=0
+    server killed, waiting KV free...
+
+========== ARM: no_spec :: PHASES: ['phase4'] ==========
+[no_spec] server PID=74193, waiting for /health (timeout=600s)...
+    [no_spec] still waiting... elapsed=30s
+    [no_spec] still waiting... elapsed=60s
+    [no_spec] still waiting... elapsed=90s
+    [no_spec] still waiting... elapsed=120s
+[no_spec] server READY after 150.0s
+    [no_spec] Phase 0 metrics snapshot saved
+    [no_spec] cold-start burn (short random, c=64, 2 rounds)...
+    [no_spec][burn_0] elapsed=21.2s rc=0
+    [no_spec][burn_1] elapsed=20.2s rc=0
+    [no_spec][ctx=400][warmup_0] elapsed=21.8s rc=0
+    [no_spec][ctx=400][warmup_1] elapsed=18.0s rc=0
+    [no_spec][ctx=400][warmup_2] elapsed=19.5s rc=0
+    [no_spec][ctx=400][measure_0] elapsed=18.1s rc=0
+    [no_spec][ctx=400][measure_1] elapsed=19.4s rc=0
+    [no_spec][ctx=400][measure_2] elapsed=19.1s rc=0
+    [no_spec][ctx=900][warmup_0] elapsed=23.8s rc=0
+    [no_spec][ctx=900][warmup_1] elapsed=22.0s rc=0
+    [no_spec][ctx=900][warmup_2] elapsed=22.9s rc=0
+    [no_spec][ctx=900][measure_0] elapsed=22.4s rc=0
+    [no_spec][ctx=900][measure_1] elapsed=22.2s rc=0
+    [no_spec][ctx=900][measure_2] elapsed=22.3s rc=0
+    [no_spec][ctx=1900][warmup_0] elapsed=25.1s rc=0
+    [no_spec][ctx=1900][warmup_1] elapsed=24.0s rc=0
+    [no_spec][ctx=1900][warmup_2] elapsed=23.5s rc=0
+    [no_spec][ctx=1900][measure_0] elapsed=23.5s rc=0
+    [no_spec][ctx=1900][measure_1] elapsed=23.0s rc=0
+    [no_spec][ctx=1900][measure_2] elapsed=23.1s rc=0
+    [no_spec][ctx=4000][warmup_0] elapsed=26.6s rc=0
+    [no_spec][ctx=4000][warmup_1] elapsed=25.7s rc=0
+    [no_spec][ctx=4000][warmup_2] elapsed=26.3s rc=0
+    [no_spec][ctx=4000][measure_0] elapsed=25.5s rc=0
+    [no_spec][ctx=4000][measure_1] elapsed=25.5s rc=0
+    [no_spec][ctx=4000][measure_2] elapsed=26.3s rc=0
+    server killed, waiting KV free...
+
+========== ARM: C_prime :: PHASES: ['phase4'] ==========
+[C_prime] server PID=84200, waiting for /health (timeout=600s)...
+    [C_prime] still waiting... elapsed=30s
+    [C_prime] still waiting... elapsed=60s
+    [C_prime] still waiting... elapsed=90s
+    [C_prime] still waiting... elapsed=120s
+[C_prime] server READY after 145.0s
+    [C_prime] Phase 0 metrics snapshot saved
+    [C_prime] cold-start burn (short random, c=64, 2 rounds)...
+    [C_prime][burn_0] elapsed=30.8s rc=0
+    [C_prime][burn_1] elapsed=18.3s rc=0
+    [C_prime][ctx=400][warmup_0] elapsed=24.6s rc=0
+    [C_prime][ctx=400][warmup_1] elapsed=23.9s rc=0
+    [C_prime][ctx=400][warmup_2] elapsed=23.2s rc=0
+    [C_prime][ctx=400][measure_0] elapsed=22.7s rc=0
+    [C_prime][ctx=400][measure_1] elapsed=22.3s rc=0
+    [C_prime][ctx=400][measure_2] elapsed=24.2s rc=0
+    [C_prime][ctx=900][warmup_0] elapsed=25.6s rc=0
+    [C_prime][ctx=900][warmup_1] elapsed=23.1s rc=0
+    [C_prime][ctx=900][warmup_2] elapsed=24.1s rc=0
+    [C_prime][ctx=900][measure_0] elapsed=22.9s rc=0
+    [C_prime][ctx=900][measure_1] elapsed=21.0s rc=0
+    [C_prime][ctx=900][measure_2] elapsed=20.8s rc=0
+    [C_prime][ctx=1900][warmup_0] elapsed=25.6s rc=0
+    [C_prime][ctx=1900][warmup_1] elapsed=24.5s rc=0
+    [C_prime][ctx=1900][warmup_2] elapsed=23.3s rc=0
+    [C_prime][ctx=1900][measure_0] elapsed=24.2s rc=0
+    [C_prime][ctx=1900][measure_1] elapsed=22.6s rc=0
+    [C_prime][ctx=1900][measure_2] elapsed=22.8s rc=0
+    [C_prime][ctx=4000][warmup_0] elapsed=25.8s rc=0
+    [C_prime][ctx=4000][warmup_1] elapsed=24.0s rc=0
+    [C_prime][ctx=4000][warmup_2] elapsed=22.9s rc=0
+    [C_prime][ctx=4000][measure_0] elapsed=25.0s rc=0
+    [C_prime][ctx=4000][measure_1] elapsed=24.4s rc=0
+    [C_prime][ctx=4000][measure_2] elapsed=24.6s rc=0
+    server killed, waiting KV free...
+
+========== ALL DONE ==========

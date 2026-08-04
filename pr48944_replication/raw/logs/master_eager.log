@@ -1,0 +1,52 @@
+
+========== ARM: eager_no_spec :: PHASES: ['phase4'] ==========
+[eager_no_spec] server PID=41671, waiting for /health (timeout=600s)...
+    [eager_no_spec] still waiting... elapsed=30s
+    [eager_no_spec] still waiting... elapsed=60s
+    [eager_no_spec] still waiting... elapsed=90s
+    [eager_no_spec] still waiting... elapsed=120s
+[eager_no_spec] server READY after 135.0s
+    [eager_no_spec] Phase 0 metrics snapshot saved
+    [eager_no_spec] cold-start burn (short random, c=64, 2 rounds)...
+    [eager_no_spec][burn_0] elapsed=31.5s rc=0
+    [eager_no_spec][burn_1] elapsed=22.4s rc=0
+    [eager_no_spec][ctx=1900][warmup_0] elapsed=26.0s rc=0
+    [eager_no_spec][ctx=1900][warmup_1] elapsed=22.4s rc=0
+    [eager_no_spec][ctx=1900][warmup_2] elapsed=23.8s rc=0
+    [eager_no_spec][ctx=1900][measure_0] elapsed=24.6s rc=0
+    [eager_no_spec][ctx=1900][measure_1] elapsed=23.8s rc=0
+    [eager_no_spec][ctx=1900][measure_2] elapsed=24.7s rc=0
+    [eager_no_spec][ctx=4000][warmup_0] elapsed=13.0s rc=0
+    [eager_no_spec][ctx=4000][warmup_1] elapsed=11.4s rc=0
+    [eager_no_spec][ctx=4000][warmup_2] elapsed=11.4s rc=0
+    [eager_no_spec][ctx=4000][measure_0] elapsed=9.6s rc=0
+    [eager_no_spec][ctx=4000][measure_1] elapsed=10.8s rc=0
+    [eager_no_spec][ctx=4000][measure_2] elapsed=12.2s rc=0
+    server killed, waiting KV free...
+
+========== ARM: eager_static_k3 :: PHASES: ['phase4'] ==========
+[eager_static_k3] server PID=47755, waiting for /health (timeout=600s)...
+    [eager_static_k3] still waiting... elapsed=30s
+    [eager_static_k3] still waiting... elapsed=60s
+    [eager_static_k3] still waiting... elapsed=90s
+    [eager_static_k3] still waiting... elapsed=120s
+[eager_static_k3] server READY after 135.0s
+    [eager_static_k3] Phase 0 metrics snapshot saved
+    [eager_static_k3] cold-start burn (short random, c=64, 2 rounds)...
+    [eager_static_k3][burn_0] elapsed=36.9s rc=0
+    [eager_static_k3][burn_1] elapsed=19.8s rc=0
+    [eager_static_k3][ctx=1900][warmup_0] elapsed=27.8s rc=0
+    [eager_static_k3][ctx=1900][warmup_1] elapsed=24.6s rc=0
+    [eager_static_k3][ctx=1900][warmup_2] elapsed=24.6s rc=0
+    [eager_static_k3][ctx=1900][measure_0] elapsed=24.8s rc=0
+    [eager_static_k3][ctx=1900][measure_1] elapsed=25.2s rc=0
+    [eager_static_k3][ctx=1900][measure_2] elapsed=23.3s rc=0
+    [eager_static_k3][ctx=4000][warmup_0] elapsed=11.9s rc=0
+    [eager_static_k3][ctx=4000][warmup_1] elapsed=12.9s rc=0
+    [eager_static_k3][ctx=4000][warmup_2] elapsed=12.9s rc=0
+    [eager_static_k3][ctx=4000][measure_0] elapsed=10.5s rc=0
+    [eager_static_k3][ctx=4000][measure_1] elapsed=10.2s rc=0
+    [eager_static_k3][ctx=4000][measure_2] elapsed=9.9s rc=0
+    server killed, waiting KV free...
+
+========== ALL DONE ==========

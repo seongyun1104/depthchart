@@ -9,6 +9,40 @@ Full repro material for the measurement decomposition in [vLLM PR #48944 comment
 - `aggregate_phase4.json` — Trial 1 per-cell measurements.
 - `aggregate_eager.json` — Eager control run (discarded, mml=4096 conditions did not match §2; retained for transparency).
 - `aggregate_recheck.json` — C_prime ctx=400 c=192 recheck (preempt contamination reproof).
+- `raw/` — per-cell `vllm bench serve` outputs and Prometheus snapshots that
+  the aggregate JSONs above are derived from. Structure:
+
+  ```
+  raw/
+  ├── trial1/                    Trial 1 order (C → N → S → A)
+  │   ├── burn/{arm}/burn_{0,1}.json
+  │   └── phase4/{arm}/ctx_{400,900,1900,4000}/
+  │        ├── warmup_{0,1,2}.json           discarded warmup runs
+  │        ├── measure_{0,1,2}.json          kept measurement runs
+  │        └── snapshot_{warmup,measure}_{0,1,2}.json
+  │                                          Prometheus counter deltas
+  │                                          (drafts, accepted, preempts,
+  │                                           prefix_cache_hits) around each run
+  ├── trial2/                    Trial 2 reverse order (A → S → N → C),
+  │                              same file layout as trial1/
+  └── logs/                      master_bench.py + per-arm vllm server logs
+      ├── master.log, master_aprime.log, master_eager.log,
+      │   master_recheck.log, master_t2.log
+      └── server_{arm}.log
+  ```
+
+  Cell-to-comment mapping: each cell in the Table 1 (Trial-1/Trial-2/balanced
+  averages of Mean/Median TPOT, output tok/s, acceptance rate) sums three
+  `phase4/{arm}/ctx_{N}/measure_{0,1,2}.json` files per side. The
+  `snapshot_*.json` files carry the counter-based throughput cross-check
+  and the accepted/draft/preempt deltas used to derive per-cell AR.
+
+  Trial 1 additionally includes `eager_no_spec` and `eager_static_k3`
+  arms (24 files each) that were used for the eager-mode control and
+  reported as discarded in the comment (mml conditions did not match §2);
+  they are retained here for transparency, matching the `aggregate_eager.json`
+  aggregate. `C_prime_recheck_c192` is the isolated c=192 recheck of the
+  C_prime ctx=400 cell.
 
 ## Environment (checked)
 

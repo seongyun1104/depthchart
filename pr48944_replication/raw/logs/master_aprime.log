@@ -1,0 +1,39 @@
+
+========== ARM: A_prime :: PHASES: ['phase4'] ==========
+[A_prime] server PID=31181, waiting for /health (timeout=600s)...
+    [A_prime] still waiting... elapsed=30s
+    [A_prime] still waiting... elapsed=60s
+    [A_prime] still waiting... elapsed=90s
+    [A_prime] still waiting... elapsed=120s
+[A_prime] server READY after 145.0s
+    [A_prime] Phase 0 metrics snapshot saved
+    [A_prime] cold-start burn (short random, c=64, 2 rounds)...
+    [A_prime][burn_0] elapsed=30.4s rc=0
+    [A_prime][burn_1] elapsed=18.3s rc=0
+    [A_prime][ctx=400][warmup_0] elapsed=26.8s rc=0
+    [A_prime][ctx=400][warmup_1] elapsed=24.6s rc=0
+    [A_prime][ctx=400][warmup_2] elapsed=22.9s rc=0
+    [A_prime][ctx=400][measure_0] elapsed=21.9s rc=0
+    [A_prime][ctx=400][measure_1] elapsed=22.8s rc=0
+    [A_prime][ctx=400][measure_2] elapsed=22.2s rc=0
+    [A_prime][ctx=900][warmup_0] elapsed=31.7s rc=0
+    [A_prime][ctx=900][warmup_1] elapsed=28.9s rc=0
+    [A_prime][ctx=900][warmup_2] elapsed=27.1s rc=0
+    [A_prime][ctx=900][measure_0] elapsed=27.6s rc=0
+    [A_prime][ctx=900][measure_1] elapsed=27.1s rc=0
+    [A_prime][ctx=900][measure_2] elapsed=26.9s rc=0
+    [A_prime][ctx=1900][warmup_0] elapsed=32.1s rc=0
+    [A_prime][ctx=1900][warmup_1] elapsed=27.2s rc=0
+    [A_prime][ctx=1900][warmup_2] elapsed=27.1s rc=0
+    [A_prime][ctx=1900][measure_0] elapsed=28.1s rc=0
+    [A_prime][ctx=1900][measure_1] elapsed=26.6s rc=0
+    [A_prime][ctx=1900][measure_2] elapsed=25.3s rc=0
+    [A_prime][ctx=4000][warmup_0] elapsed=32.8s rc=0
+    [A_prime][ctx=4000][warmup_1] elapsed=28.1s rc=0
+    [A_prime][ctx=4000][warmup_2] elapsed=30.5s rc=0
+    [A_prime][ctx=4000][measure_0] elapsed=30.1s rc=0
+    [A_prime][ctx=4000][measure_1] elapsed=29.8s rc=0
+    [A_prime][ctx=4000][measure_2] elapsed=30.6s rc=0
+    server killed, waiting KV free...
+
+========== ALL DONE ==========
