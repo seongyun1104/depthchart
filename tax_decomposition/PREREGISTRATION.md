@@ -64,6 +64,7 @@ Tax(V1)=(B−A)/A, Tax(V2)=(D−C)/C. **Graph-mode component = Tax(V1)−Tax(V2)
 
 ### 5.3 Grid
 - ctx ∈ {short ~400 (the #49986 point), long ~4000}.
+- **Concurrency (registered pre-data, 2026-08-05 addendum, KV-margin):** ctx400 @ c=256; ctx4000 @ **c=192**. KV pool at mml 8192 / util 0.90 / 94GB = 55,215 tokens (log-measured from `pr49986_runbook/raw/logs/vllm_v2.log`); ctx4000 @ c=256 working set ≈ 4000 + 256×196 ≈ 54,176 leaves ~1k margin → preemption. c=192 (≥129, K=0 tier preserved) → ≈41,632, comfortable. Applied **uniformly to all 4 arms at each ctx** (else within-ctx tax invalid); cross-ctx P3 compares shares not absolutes, so the c difference is fine.
 - **Tax decomposition (canonical): K=0 only** — arms A–D above.
 - **Net-effect (separate table, not "tax"):** one K>0 point (dsd-K vs no_spec) on V1 and V2, reported as end-to-end net effect (overhead + acceptance). Explicitly labelled distinct from the tax.
 - Metric: **TPOT p50/p99** primary; tok/s secondary. 3 warmup discarded + 3 measured per cell.
