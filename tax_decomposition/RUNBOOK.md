@@ -67,11 +67,17 @@ metrics snapshot / kill. It sets `VLLM_USE_V2_MODEL_RUNNER` per arm (the only
 lever). **Do not** pass `--kv-cache-dtype fp8` (FlashInfer SM90 guard, #48495).
 
 ```bash
-cd /workspace/depthchart/tax_decomposition   # or scp this file + the script up
+cd /workspace/depthchart/tax_decomposition   # or scp this file + both scripts
+                                             # (master_bench_tax.py + aggregate_tax.py)
 export RESULTS_DIR=/root/results
 
 # Gate T first (V1 arms):
-python master_bench_tax.py v1_no_spec v1_dsd_k0   # A, B  -> Gate T
+python master_bench_tax.py v1_no_spec v1_dsd_k0   # A, B
+
+# evaluate Gate T NOW, before spending V2 arm time (pre-reg §3). aggregate_tax.py
+# is stdlib-only and works with just the V1 arms present:
+python aggregate_tax.py | sed -n '/Gate T/,+3p'
+# >=10% -> proceed to V2.  <5% -> STOP: #49986 correction event (pre-reg §6).
 
 # Gate B: V2 arms ONE AT A TIME with a fail-fast check between (a hang in FULL
 # capture burns the full 1200s timeout; do not eat it twice on the same blocker).
@@ -81,7 +87,8 @@ cat $RESULTS_DIR/gate_b_v2_no_spec.json           # assert_seen / full_cudagraph
 python master_bench_tax.py v2_dsd_k0              # D
 ```
 
-- **Gate B** (V2 arms): if `v2_no_spec`/`v2_dsd_k0` fail `/health` in 600s, the
+- **Gate B** (V2 arms): if `v2_no_spec`/`v2_dsd_k0` fail `/health` in the arm
+  timeout (1200s V2 / 600s V1), the
   server log `/tmp/server_v2_*.log` is the primary #49652 deliverable (capture
   the #48494 assert / other blocker). `gate_b_{arm}.json` records
   assert-seen / full-cudagraph-seen. On hard fail: fall back to the proxy
@@ -104,8 +111,9 @@ python master_bench_tax.py spot    # main build, V1, dsd-K0, == #49986 point
                                    # (spot also runs ctx4000; only ctx400 feeds S)
 ```
 
-Confirms branch-V1 (arm B) ≈ main-V1 (spot) ≈ published #49986 -31%. If
-S != B beyond noise, the branch altered V1 behavior -> report, re-scope.
+Confirms branch-V1 (arm B) ≈ main-V1 (spot); combined with Gate T this
+transitively ties the branch tax to the published #49986 -31% (S alone does
+not). If S != B beyond noise, the branch altered V1 behavior -> report, re-scope.
 
 ## 5. Dump + destroy
 
