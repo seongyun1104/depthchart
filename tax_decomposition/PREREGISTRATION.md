@@ -60,7 +60,7 @@ Per-decode-step, spec on: `T_spec ≈ T_target_verify(runner) + T_draft + T_book
 
 Tax(V1)=(B−A)/A, Tax(V2)=(D−C)/C. **Graph-mode component = Tax(V1)−Tax(V2). Residual = Tax(V2).** Because A/B/C/D share one build, `runner` is the single variable — no build axis confound.
 
-**Spot check S (build-drift + #49986 linkage, ~30 min, before the grid):** one cell of `dsd-K0` on **main-V1** at the #49986 ctx point. Purpose: (a) confirm branch-V1 (arm B) ≈ main-V1 — since #49652 touches DSD query-len derivation, the branch's V1 path could differ; (b) confirm main-V1 ≈ the published #49986 −31%, preserving the line to the prior measurement. If S(main-V1) ≠ B(branch-V1) beyond noise, the branch altered V1 behavior → report and re-scope.
+**Spot check S (build-drift + #49986 linkage, ~30 min, before the grid):** one cell of `dsd-K0` on **main-V1** at the #49986 ctx point. Purpose: (a) confirm branch-V1 (arm B) ≈ main-V1 — since #49652 touches DSD query-len derivation, the branch's V1 path could differ; (b) tie the branch tax to the published #49986 −31% **transitively** — S alone does not confirm the −31%; the chain does: Gate T measures the branch tax, S confirms branch-V1 ≈ main-V1, therefore main tax ≈ branch tax ≈ published −31%. If S(main-V1) ≠ B(branch-V1) beyond noise, the branch altered V1 behavior → report and re-scope.
 
 ### 5.3 Grid
 - ctx ∈ {short ~400 (the #49986 point), long ~4000}.

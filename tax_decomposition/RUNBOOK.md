@@ -43,8 +43,8 @@ cd /workspace
 # full history, lazy blobs — a shallow clone breaks the PR-head fetch (P2' lesson)
 git clone --filter=blob:none https://github.com/vllm-project/vllm.git
 cd vllm
-git fetch origin pull/49652/head
-git checkout fd355781f71e          # pinned; the script records actual HEAD
+git fetch origin pull/49652/head:pr49652   # explicit local branch ref
+git checkout fd355781f71e          # pinned SHA (reachable via pr49652)
 uv pip uninstall vllm
 VLLM_USE_PRECOMPILED=1 uv pip install -e . --no-build-isolation
 uv pip install --upgrade quack-kernels
@@ -70,9 +70,15 @@ lever). **Do not** pass `--kv-cache-dtype fp8` (FlashInfer SM90 guard, #48495).
 cd /workspace/depthchart/tax_decomposition   # or scp this file + the script up
 export RESULTS_DIR=/root/results
 
-# Gate B + Gate T first, cheap fail-fast:
+# Gate T first (V1 arms):
 python master_bench_tax.py v1_no_spec v1_dsd_k0   # A, B  -> Gate T
-python master_bench_tax.py v2_no_spec v2_dsd_k0   # C, D  -> Gate B (auto-captured)
+
+# Gate B: V2 arms ONE AT A TIME with a fail-fast check between (a hang in FULL
+# capture burns the full 1200s timeout; do not eat it twice on the same blocker).
+python master_bench_tax.py v2_no_spec             # C
+cat $RESULTS_DIR/gate_b_v2_no_spec.json           # assert_seen / full_cudagraph_seen
+# only if it launched cleanly (no #48494 assert):
+python master_bench_tax.py v2_dsd_k0              # D
 ```
 
 - **Gate B** (V2 arms): if `v2_no_spec`/`v2_dsd_k0` fail `/health` in 600s, the
@@ -125,7 +131,11 @@ Per ctx, from TPOT p50 (measure seeds only, warmup discarded):
 - **drafts sanity (dsd-K0 arms):** `drafts_total` should be small but non-zero
   (~hundreds) — the ramp region (batch < 129) fires the K=3 tier. Exactly 0
   means the schedule was not applied; a large value means wrong-tier landing.
-  `aggregate_tax.py` prints it per cell.
+  `aggregate_tax.py` prints it per cell. **ctx4000/c=192 specifically:** client
+  concurrency != per-step batch — confirm server `num_requests_running` stays
+  >=65 (both `[65,128,0]` and `[129,512,0]` are K=0, so >=65 keeps dsd-K0). If
+  drafts_total is in the thousands, the batch fell to <=64 and fired the K=3
+  tier (`[1,64,3]`); that cell is no longer dsd-K0 — discard it.
 - Run `RESULTS_DIR=./raw python aggregate_tax.py` — computes everything above;
   no eyeballing six JSONs under time pressure.
 
