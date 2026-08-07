@@ -1,0 +1,1 @@
+SpeculativeConfig(method='mtp', model='/root/models/draft', num_spec_tokens=2)
