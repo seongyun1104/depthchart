@@ -36,7 +36,9 @@ PORT = 8000
 BASE_URL = f"http://localhost:{PORT}"
 RESULTS_DIR = Path(os.environ.get("RESULTS_DIR", "/root/results"))
 VLLM_REPO = os.environ.get("VLLM_REPO", "/workspace/vllm")
-MAX_MODEL_LEN = "33024"          # 32768 prompt + 256 output (pre-reg §9 deviation)
+MAX_MODEL_LEN = "34816"          # 32768 prefix + 96 suffix + 256 out + BOS/template headroom
+                                 # (pre-reg §9 said 33024=32768+256, too tight by BOS+suffix:
+                                 #  requests hit HTTP400 input+output>mml; raised, ctx unchanged)
 CTXS = [4096, 32768]             # bench-time; both run on each server
 OUTPUT_LEN = 256                 # pre-reg §4: >=256 to keep decode window (not 100)
 TIMEOUT = 900                    # 33024 KV alloc + FULL cudagraph capture is slow
