@@ -77,6 +77,13 @@ Speculation gives ~1.9× (4k, K3 vs no_spec) and ~2.1× (32k, K5 vs no_spec).
    4.5% forcing loss is comparable to the 32k measurement noise. The contradiction
    is *directionally suggestive, not resolved* at this batch/precision. (4k is
    tighter: K3 vs K5 is ~1.5–2σ, so `K*(4k)=3` is reasonably solid.)
+   The 32k stdev is **largely a systematic first-measure-seed effect, not random**:
+   the speculating arms' `measure_0` runs ~14–17% below `measure_1/2`
+   (K3 [630.8, 729.7, 764.3], K5 [635.7, 762.4, 763.4], K7 [639.8, 770.7, 718.9]),
+   while `no_spec`/`k0` show none (±0.3%) — i.e. 3 warmup rounds don't reach
+   *speculative* steady-state at 32k. The reported medians already exclude the cold
+   `measure_0`; it only inflates the stdev. Tightening 32k therefore needs **more
+   warmup**, not more measure seeds.
 2. **A more robust framing than the argmax:** high K is systematically *less
    penalized* at 32k. K7 sits 10.2% below its ctx-peak at 4k but only 5.7% below
    at 32k; K5 is 4.5% below peak at 4k but is the peak at 32k. The optimal-K
@@ -98,6 +105,32 @@ Speculation gives ~1.9× (4k, K3 vs no_spec) and ~2.1× (32k, K5 vs no_spec).
   reversal skip justified by ≤1.72% + 0.39%). The WEAK result is not a drift
   artifact.
 - All 8 arms × 2 ctx ran `rc=0`, 0 preemptions, 0 HTTP-400 (after the mml fix).
+
+## Acceptance rate (from measure snapshots) — mechanism, with a workload caveat
+
+Per-step mean accepted length `L = accepted/drafts` and `AR = accepted/draft_tokens (= L/K)`:
+
+| K | AR@4k | AR@32k | L@4k | L@32k |
+|---|---|---|---|---|
+| 1 | 0.823 | 0.844 | 0.82 | 0.84 |
+| 3 | 0.595 | 0.655 | 1.78 | 1.97 |
+| 5 | 0.426 | 0.495 | 2.13 | 2.48 |
+| 7 | 0.313 | 0.387 | 2.19 | 2.71 |
+
+AR is higher at 32k at every K, consistent with `K*(32k) > K*(4k)` (higher K stays
+acceptable longer at long context). **Mapping verified from raw:** `draft_tokens =
+K × drafts` exactly (ratios 1.000/2.000/3.000/5.000/7.000 per arm) and `L ≤ K`, so the
+arm→K labeling and the AR denominator are correct. (Per-position acceptance counters
+were **not** captured in these snapshots, so a per-position cumulative-product
+cross-check is not runnable on this raw; the check here is the exact K-mapping + `L ≤ K`.)
+
+**Workload caveat — do not generalize the AR trend.** The context is synthetic
+`prefix_repetition` (a shared/repeated prefix padded to length), which is easier to
+draft than natural text, so the long-context AR uplift is **likely workload-inflated**
+and needs natural-document validation before "AR rises with context" is claimed as a
+general property. On natural 32k documents it could move the other way (draft staleness
+/ the TTS–BudgetDraft axis). The table is reported as an observation consistent with the
+K* shift, not as an established mechanism.
 
 ## What this does and does not say
 
