@@ -39,13 +39,14 @@ VLLM_REPO = os.environ.get("VLLM_REPO", "/workspace/vllm")
 MAX_MODEL_LEN = "34816"          # 32768 prefix + 96 suffix + 256 out + BOS/template headroom
                                  # (pre-reg §9 said 33024=32768+256, too tight by BOS+suffix:
                                  #  requests hit HTTP400 input+output>mml; raised, ctx unchanged)
-CTXS = [4096, 32768]             # bench-time; both run on each server
+CTXS = [int(x) for x in os.environ.get("CTX_UPLIFT_CTXS", "4096,32768").split(",")]  # bench-time; both run on each server (env-override for precision re-run)
 OUTPUT_LEN = 256                 # pre-reg §4: >=256 to keep decode window (not 100)
 TIMEOUT = 900                    # 33024 KV alloc + FULL cudagraph capture is slow
 NUM_PROMPT_ROUNDS = {4096: 16, 32768: 8}   # waves of `b`; 32k slower -> fewer
 
 KS = [0, 1, 2, 3, 5, 7]
 ARMS = [f"k{k}" for k in KS] + ["no_spec", "spot"]  # spot re-measures k0 at the end
+WARMUP = int(os.environ.get("CTX_UPLIFT_WARMUP", "3"))  # discarded warmup rounds/ctx; raise for 32k spec steady-state (PREREGISTRATION_precision.md)
 
 
 def spine_b():
@@ -277,10 +278,10 @@ def phase_grid(arm, b):
     for ctx in CTXS:
         out_dir = RESULTS_DIR / "grid" / arm / f"ctx_{ctx}"
         out_dir.mkdir(parents=True, exist_ok=True)
-        for i in range(6):
-            is_measure = i >= 3
+        for i in range(WARMUP + 3):
+            is_measure = i >= WARMUP
             label = "measure" if is_measure else "warmup"
-            seed = i - 3 if is_measure else i
+            seed = i - WARMUP if is_measure else i
             fname = f"{label}_{seed}.json"
             m0 = get_metrics()
             elapsed, rc, n_prompts = run_bench(ctx, b, out_dir, fname)
