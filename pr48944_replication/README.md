@@ -46,7 +46,7 @@ Full repro material for the measurement decomposition in [vLLM PR #48944 comment
 
 ## Environment (checked)
 
-- Hardware: **H100 NVL 96GB**, driver 580.82.09, CUDA 13.0.88
+- Hardware: **H100 NVL 94GB**, driver 580.82.09, CUDA 13.0.88
 - vLLM: `feat/dsd-2d-ctx-schedule` @ `c5d967c23fbedcd4085ea3e90ad4c806b40c55be` (PR #48944 head)
 - Target: `prithivMLmods/gemma-4-31B-it-qat-FP8`
 - Draft: `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant`

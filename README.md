@@ -12,9 +12,9 @@ differ only in the model / drafter / GPU-budget triple:
 
 | Track                | Main model                              | Drafter                                | GPU target       | Status                    |
 |----------------------|-----------------------------------------|----------------------------------------|------------------|---------------------------|
-| Same-graph MTP head  | `LGAI-EXAONE/EXAONE-4.5-33B-FP8`        | (native in-graph MTP layer)            | H100 96 GB       | deferred (drafter MAL ~1.5, low detection power) |
+| Same-graph MTP head  | `LGAI-EXAONE/EXAONE-4.5-33B-FP8`        | (native in-graph MTP layer)            | H100 NVL 94 GB       | deferred (drafter MAL ~1.5, low detection power) |
 | External MTP drafter | `AxionML/Gemma-4-12B-NVFP4`             | `google/gemma-4-12B-it-assistant`      | RTX 5090 32 GB   | secondary                 |
-| External MTP drafter | `prithivMLmods/gemma-4-31B-it-qat-FP8`  | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` | H100 96 GB | primary (campaign) |
+| External MTP drafter | `prithivMLmods/gemma-4-31B-it-qat-FP8`  | `google/gemma-4-31B-it-qat-q4_0-unquantized-assistant` | H100 NVL 94 GB | primary (campaign) |
 
 Multi-instance, PD-disaggregation, and llm-d remain out of scope.
 LMCache is demoted to a capacity track (orthogonal to the DSD core);
@@ -164,27 +164,27 @@ Consequences for analysis:
 
 ## Memory budget (`gpu_memory_utilization = 0.85`)
 
-### H100 96 GB (Hopper `sm_90`, FP8 tensor cores)
+### H100 NVL 94 GB (Hopper `sm_90`, FP8 tensor cores)
 
 **EXAONE 4.5 33B FP8** (same-graph MTP head):
 
 ```
-96 GB × 0.85 = 81.6 GB  (weights + KV pool budget)
-weights ≈ 33 GB (FP8) → KV pool ≈ 48.6 GB
+94 GB × 0.85 = 79.9 GB  (weights + KV pool budget)
+weights ≈ 33 GB (FP8) → KV pool ≈ 46.9 GB
 MTP head shares the same graph; no separate drafter VRAM
-reserve = 96 - 81.6 = 14.4 GB
+reserve = 94 - 79.9 = 14.1 GB
 ```
 
 **Gemma 4 31B QAT-FP8** + `gemma-4-31B-it-qat-q4_0-unquantized-assistant` drafter:
 
 ```
-96 GB × 0.85 = 81.6 GB  (weights + KV pool budget)
-weights ≈ 31 GB (FP8) → KV pool ≈ 50.6 GB
+94 GB × 0.85 = 79.9 GB  (weights + KV pool budget)
+weights ≈ 31 GB (FP8) → KV pool ≈ 48.9 GB
 drafter resident: ~4 GB (BF16 assumption)
-reserve = 96 - 81.6 = 14.4 GB
+reserve = 94 - 79.9 = 14.1 GB
 ```
 
-The 14.4 GB reserve is conservative (rule of thumb is 5-8 GB) to absorb
+The 14.1 GB reserve is conservative (rule of thumb is 5-8 GB) to absorb
 MTP draft-tree activation spikes and LMCache transfer buffers. After
 the first sanity run, inspect free VRAM reported by vLLM at startup and
 tune `gpu_memory_utilization` up toward 0.90 if there's slack.
