@@ -26,6 +26,7 @@ from urllib.request import urlopen
 from urllib.error import URLError
 
 MODEL = os.environ.get("MODEL", "/root/models/target")
+DRAFT_MODEL = os.environ.get("DRAFT_MODEL", "/root/models/draft")
 PORT = 8000
 BASE_URL = f"http://localhost:{PORT}"
 RESULTS_DIR = Path(os.environ.get("RESULTS_DIR", "/root/results"))
@@ -111,8 +112,16 @@ def assert_arm_is_k0(concurrency):
 def spec_config(arm):
     if not ARMS[arm]:
         return None
+    # Same shape as tax_decomposition/master_bench_tax.py::spec_config -- a
+    # separate drafter model, no "method" key (vLLM infers draft_model from the
+    # presence of "model"). The harness previously asked for "method": "mtp"
+    # with no drafter, which cannot work: the target checkpoint carries no MTP
+    # head (no mtp/nextn key in its config.json), and Gemma-4 MTP is a
+    # Model-Runner-V2 feature besides -- V2 is exactly where K=0 is ignored
+    # (#51510), which this study must avoid. Keeping the tax_decomposition form
+    # is also what preserves comparability with its V1 +7.29% / V2 +16.64%.
     return {
-        "method": "mtp",
+        "model": DRAFT_MODEL,
         "num_speculative_tokens": 3,
         "num_speculative_tokens_per_batch_size": DSD_K0_SCHEDULE,
     }
@@ -269,9 +278,9 @@ def snapshot_delta(m0, m1, elapsed):
     return d
 
 
-def run_bench(arm, ctx, out_dir, out_file):
+def run_bench(arm, ctx, out_dir, out_file, conc=None):
     out_dir.mkdir(parents=True, exist_ok=True)
-    concurrency = CTX_CONCURRENCY[ctx]
+    concurrency = conc or CTX_CONCURRENCY[ctx]
     if ARMS[arm]:
         assert_arm_is_k0(concurrency)
     cmd = [
@@ -311,10 +320,14 @@ def cold_start_burn():
     time.sleep(30)
 
 
-def phase_grid(arm, only_ctx):
+def phase_grid(arm, only_ctx, conc=None):
     ctxs = [only_ctx] if only_ctx else list(CTX_CONCURRENCY)
     for ctx in ctxs:
-        out_dir = RESULTS_DIR / "grid" / arm / f"ctx_{ctx}"
+        c = conc or CTX_CONCURRENCY[ctx]
+        # Cell = (ctx, concurrency). The KV pool couples the two -- a long ctx
+        # simply cannot hold many sequences -- so concurrency is part of the
+        # cell identity, never an implicit consequence of ctx.
+        out_dir = RESULTS_DIR / "grid" / arm / f"ctx_{ctx}_c{c}"
         out_dir.mkdir(parents=True, exist_ok=True)
         reps = int(os.environ.get("REPS", "4"))  # 1 warmup + 3 measure
         n_warm = reps - 3
@@ -323,7 +336,7 @@ def phase_grid(arm, only_ctx):
             label = "measure" if is_measure else "warmup"
             seed = i - n_warm if is_measure else i
             m0 = get_metrics()
-            elapsed, rc = run_bench(arm, ctx, out_dir, f"{label}_{seed}.json")
+            elapsed, rc = run_bench(arm, ctx, out_dir, f"{label}_{seed}.json", conc)
             m1 = get_metrics()
             if m0 and m1:
                 (out_dir / f"snapshot_{label}_{seed}.json").write_text(
@@ -331,13 +344,13 @@ def phase_grid(arm, only_ctx):
             print(f"    [{arm}][ctx={ctx}][{label}_{seed}] elapsed={elapsed:.1f}s rc={rc}", flush=True)
 
 
-def run_arm(arm, only_ctx):
-    tag = f"{arm}{'_nsys' if NSYS else ''}{f'_ctx{only_ctx}' if only_ctx else ''}"
+def run_arm(arm, only_ctx, conc=None):
+    tag = f"{arm}{'_nsys' if NSYS else ''}{f'_ctx{only_ctx}' if only_ctx else ''}{f'_c{conc}' if conc else ''}"
     proc, log = launch_server(arm, tag)
     try:
         record_cudagraph_mode(tag)
         cold_start_burn()
-        phase_grid(arm, only_ctx)
+        phase_grid(arm, only_ctx, conc)
     finally:
         # keep the server log: KV pool size, cudagraph mode, any downgrade warning
         shutil.copy(f"/tmp/server_{tag}.log", RESULTS_DIR / f"server_{tag}.log")
@@ -380,6 +393,9 @@ def main():
                     help="ctx-major sweep of both arms (budget-safe ordering)")
     ap.add_argument("--ctx-order", type=str, default="",
                     help="comma-separated ctx order for --paired")
+    ap.add_argument("--conc", type=int, default=0,
+                    help="override concurrency for this cell (ctx and batch are "
+                         "coupled by the KV pool, so the pair must be stated)")
     args = ap.parse_args()
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
     if args.paired:
@@ -388,7 +404,7 @@ def main():
         run_paired(order)
         return
     for arm in args.arms:
-        run_arm(arm, args.only_ctx or None)
+        run_arm(arm, args.only_ctx or None, args.conc or None)
 
 
 if __name__ == "__main__":
