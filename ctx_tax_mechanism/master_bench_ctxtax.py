@@ -316,7 +316,7 @@ def phase_grid(arm, only_ctx):
     for ctx in ctxs:
         out_dir = RESULTS_DIR / "grid" / arm / f"ctx_{ctx}"
         out_dir.mkdir(parents=True, exist_ok=True)
-        reps = 4 if ctx >= 32000 else 6  # high-ctx runs are slow; 1 warmup + 3 measure
+        reps = int(os.environ.get("REPS", "4"))  # 1 warmup + 3 measure
         n_warm = reps - 3
         for i in range(reps):
             is_measure = i >= n_warm
@@ -339,17 +339,54 @@ def run_arm(arm, only_ctx):
         cold_start_burn()
         phase_grid(arm, only_ctx)
     finally:
-        # copy the DEBUG server log for the scheduler-census parser
+        # keep the server log: KV pool size, cudagraph mode, any downgrade warning
         shutil.copy(f"/tmp/server_{tag}.log", RESULTS_DIR / f"server_{tag}.log")
         kill_server(proc, log)
 
 
+# Order the ctx sweep so that the primary endpoint is complete first. A rental can
+# be cut short -- by credit, by a dead box -- and arm-major ordering would then
+# leave a full no_spec arm with no dsd_k0 to compare it against, i.e. nothing. The
+# endpoints of Tax(49400)-Tax(400) are measured first, the interior fills in after.
+PAIRED_CTX_ORDER = [400, 49400, 4000, 16000, 32000]
+
+
+def run_paired(ctx_order):
+    """ctx-major: both arms at one ctx before moving on.
+
+    Every completed ctx yields a usable A/B pair, so an interrupted run degrades
+    to a shorter sweep instead of an unusable one. Pairing the arms close in time
+    also limits drift between them.
+    """
+    done = []
+    for ctx in ctx_order:
+        if ctx not in CTX_CONCURRENCY:
+            print(f"[skip] ctx={ctx} has no concurrency entry", flush=True)
+            continue
+        print(f"\n===== ctx={ctx} (concurrency={CTX_CONCURRENCY[ctx]}) =====", flush=True)
+        for arm in ("no_spec", "dsd_k0"):
+            run_arm(arm, ctx)
+        done.append(ctx)
+        (RESULTS_DIR / "PAIRS_DONE.txt").write_text(
+            "\n".join(f"{c}\t{CTX_CONCURRENCY[c]}" for c in done) + "\n")
+        print(f"===== ctx={ctx} PAIR COMPLETE (done: {done}) =====", flush=True)
+
+
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("arms", nargs="+", choices=list(ARMS))
+    ap.add_argument("arms", nargs="*", default=[], choices=list(ARMS) + [])
     ap.add_argument("--only-ctx", type=int, default=0)
+    ap.add_argument("--paired", action="store_true",
+                    help="ctx-major sweep of both arms (budget-safe ordering)")
+    ap.add_argument("--ctx-order", type=str, default="",
+                    help="comma-separated ctx order for --paired")
     args = ap.parse_args()
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    if args.paired:
+        order = ([int(x) for x in args.ctx_order.split(",")]
+                 if args.ctx_order else PAIRED_CTX_ORDER)
+        run_paired(order)
+        return
     for arm in args.arms:
         run_arm(arm, args.only_ctx or None)
 
