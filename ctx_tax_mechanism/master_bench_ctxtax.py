@@ -34,13 +34,20 @@ NSYS = os.environ.get("NSYS", "0") == "1"
 NUM_PROMPTS = int(os.environ.get("NUM_PROMPTS", "512"))
 
 ARMS = {"no_spec": False, "dsd_k0": True}
-DSD_K0_SCHEDULE = [[1, 64, 3], [65, 128, 0], [129, 512, 0]]
+# Arm B must mean the same thing at every ctx: "DSD enabled, drafting nothing".
+# A tiered schedule cannot do that here -- the KV pool forces concurrency down as
+# ctx grows (129 requests at ctx 16k would need ~2.1M pool tokens, far beyond a
+# single H100), so a schedule whose K=0 tier starts at batch 129 would silently
+# read K=3 at the long-ctx end and K=0 at the short end. The primary endpoint
+# Tax(49400)-Tax(400) would then mix a ctx effect with a K 0->3 switch. Flat K=0
+# keeps the arm constant so ctx is the only thing that varies.
+DSD_K0_SCHEDULE = [[1, 512, 0]]
 
-# Per-ctx concurrency: SET ON RENTAL from measured KV pool (RUNBOOK §KV).
-# Defaults below are placeholders scaled ~1/ctx off the tax_decomposition anchor
-# (55,215-token pool at 8192/0.90). Must keep arm B in the K=0 tier (batch>=129)
-# where feasible; at high ctx the pool caps concurrency below 129 -> the tax is
-# then read in the low-batch regime and that is recorded, not silently mixed.
+# Per-ctx concurrency: SET ON RENTAL from the measured KV pool (RUNBOOK §KV).
+# The values below are placeholders scaled ~1/ctx off the tax_decomposition anchor.
+# The only hard constraint is the preemption margin (see assert_arm_is_k0 for the
+# schedule-side invariant): concurrency * (ctx + suffix) < 0.9 * pool, applied
+# identically to both arms at each ctx.
 CTX_CONCURRENCY = {
     400: 256,
     4000: 192,
@@ -61,10 +68,44 @@ DELTA_METRICS = [
     "vllm:prefix_cache_queries_total",
 ]
 
+# Per-step token census. vLLM exports this as a Prometheus histogram, so the
+# bucket deltas around a run give the distribution of tokens-per-engine-step
+# directly: decode-only steps land at ~1 token per running request, while
+# chunked-prefill steps land in the high buckets. This replaces the DEBUG
+# scheduler-log census -- current vLLM emits no per-step scheduler DEBUG line
+# (verified against origin/main e25c586b90), so that parser matched nothing,
+# and running the server at DEBUG to feed it would have taxed the very timing
+# this study measures.
+HISTOGRAM_METRICS = [
+    "vllm:iteration_tokens_total",
+]
+
 
 def wipe_autotune():
     p = Path.home() / ".cache/vllm/flashinfer_autotune_cache"
     shutil.rmtree(p, ignore_errors=True)
+
+
+def assert_arm_is_k0(concurrency):
+    """Fail loudly if the schedule would draft at this concurrency.
+
+    Arm B is only interpretable as "the cost of having DSD on" while K is 0 at
+    the batch size actually used. This is asserted per ctx rather than trusted,
+    because the KV pool -- not the plan -- decides the concurrency.
+    """
+    for lo, hi, k in DSD_K0_SCHEDULE:
+        if lo <= concurrency <= hi:
+            if k != 0:
+                raise SystemExit(
+                    f"arm dsd_k0 would run at K={k} for concurrency={concurrency}; "
+                    f"the ctx sweep would confound ctx with the K tier. "
+                    f"Fix DSD_K0_SCHEDULE or the concurrency."
+                )
+            return
+    raise SystemExit(
+        f"concurrency={concurrency} falls outside DSD_K0_SCHEDULE ranges "
+        f"{DSD_K0_SCHEDULE}; K would be undefined for arm dsd_k0."
+    )
 
 
 def spec_config(arm):
@@ -93,7 +134,8 @@ def launch_server(arm, tag):
     env["FLASHINFER_DISABLE_VERSION_CHECK"] = "1"
     env["PYTHONHASHSEED"] = "0"
     env["VLLM_USE_V2_MODEL_RUNNER"] = "0"
-    env["VLLM_LOGGING_LEVEL"] = "DEBUG"  # scheduler step census
+    # No DEBUG logging: the per-step scheduler census it used to feed no longer
+    # exists upstream, and DEBUG-level logging would tax the timing under study.
     log_path = f"/tmp/server_{tag}.log"
     log = open(log_path, "w")
     if NSYS and ARMS[arm]:
@@ -164,16 +206,74 @@ def parse_metric(text, name):
     return total
 
 
+def parse_histogram(text, name):
+    """Return {le_bound: cumulative_count} for a Prometheus histogram."""
+    buckets = {}
+    prefix = name + "_bucket{"
+    for line in text.split("\n"):
+        if not line.startswith(prefix):
+            continue
+        try:
+            le = line.split('le="', 1)[1].split('"', 1)[0]
+            buckets[le] = buckets.get(le, 0.0) + float(line.split()[-1])
+        except (ValueError, IndexError):
+            pass
+    return buckets
+
+
+def histogram_delta(h0, h1):
+    """Cumulative bucket deltas -> per-bucket step counts (non-cumulative)."""
+    def _key(le):
+        return float("inf") if le == "+Inf" else float(le)
+
+    delta = {le: h1.get(le, 0.0) - h0.get(le, 0.0) for le in h1}
+    ordered = sorted(delta, key=_key)
+    out, prev = {}, 0.0
+    for le in ordered:
+        out[le] = delta[le] - prev
+        prev = delta[le]
+    return out
+
+
+def census_split(hist_delta, concurrency):
+    """Split steps into decode-only vs prefill-heavy.
+
+    A decode-only step schedules ~1 token per running request, so it cannot
+    exceed the concurrency ceiling; anything above that bucket carries a
+    prefill chunk. Reported alongside the raw buckets -- the threshold is a
+    reading aid, not a measurement.
+    """
+    decode = prefill = 0.0
+    for le, n in hist_delta.items():
+        bound = float("inf") if le == "+Inf" else float(le)
+        if bound <= concurrency:
+            decode += n
+        else:
+            prefill += n
+    total = decode + prefill
+    return {
+        "decode_only_steps": decode,
+        "prefill_heavy_steps": prefill,
+        "prefill_step_frac": (prefill / total) if total else None,
+    }
+
+
 def snapshot_delta(m0, m1, elapsed):
     d = {"elapsed_sec": elapsed}
     for m in DELTA_METRICS:
         d[m.replace("vllm:", "").replace("_total", "_delta")] = parse_metric(m1, m) - parse_metric(m0, m)
+    for m in HISTOGRAM_METRICS:
+        hd = histogram_delta(parse_histogram(m0, m), parse_histogram(m1, m))
+        key = m.replace("vllm:", "").replace("_total", "")
+        d[key + "_buckets"] = hd
     return d
 
 
-def run_bench(ctx, out_dir, out_file):
+def run_bench(arm, ctx, out_dir, out_file):
     out_dir.mkdir(parents=True, exist_ok=True)
     concurrency = CTX_CONCURRENCY[ctx]
+    if ARMS[arm]:
+        assert_arm_is_k0(concurrency)
     cmd = [
         "vllm", "bench", "serve", "--model", MODEL, "--port", str(PORT),
         "--num-prompts", str(NUM_PROMPTS), "--max-concurrency", str(concurrency),
@@ -223,7 +323,7 @@ def phase_grid(arm, only_ctx):
             label = "measure" if is_measure else "warmup"
             seed = i - n_warm if is_measure else i
             m0 = get_metrics()
-            elapsed, rc = run_bench(ctx, out_dir, f"{label}_{seed}.json")
+            elapsed, rc = run_bench(arm, ctx, out_dir, f"{label}_{seed}.json")
             m1 = get_metrics()
             if m0 and m1:
                 (out_dir / f"snapshot_{label}_{seed}.json").write_text(

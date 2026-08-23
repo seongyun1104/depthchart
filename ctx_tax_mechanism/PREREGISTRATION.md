@@ -23,7 +23,25 @@ This is the open problem left on [#49986](https://github.com/vllm-project/vllm/i
 | arm | spec | schedule |
 |---|---|---|
 | A `no_spec` | off | — |
-| B `dsd_k0` | on | `[[1,64,3],[65,128,0],[129,512,0]]` — lands in K=0 tier at the chosen concurrency |
+| B `dsd_k0` | on | `[[1,512,0]]` — flat K=0, so the arm means the same thing at every ctx |
+
+‼️ **Confound found and removed 2026-08-23, before any measurement.** The arm was
+originally `[[1,64,3],[65,128,0],[129,512,0]]`, i.e. K=0 only at batch ≥ 65. But the KV
+pool forces concurrency *down* as ctx grows (holding batch ≥ 129 at ctx 16k would need
+~2.1M pool tokens — far beyond a single H100), so the planned concurrencies would have
+read **K=0 at ctx 400/4000 and K=3 at ctx 16000/32000/49400**. The primary endpoint
+`Tax(49400) − Tax(400)` would then have measured a ctx effect *plus* a K 0→3 switch and
+reported the sum as ctx-scaling. Noting the regime change in RESULTS (the original
+mitigation) would not have rescued the headline number, because the headline itself
+straddles the switch.
+
+Flat K=0 keeps arm B constant so ctx is the only thing that varies, and
+`assert_arm_is_k0(concurrency)` now fails the run rather than trusting the plan — the
+concurrency is chosen from the measured pool on the rental, so the invariant has to be
+checked at the value actually used, not the value intended. (Verified: the guard blocks
+the old schedule at concurrency 12 and 48, and allows it at 192.) The batch axis is not
+abandoned — it is a separate study (cf. #49548), and mixing it into the ctx sweep is
+exactly what this fix prevents.
 
 Tax(ctx) = (TPOT_B − TPOT_A) / TPOT_A at each ctx. Primary endpoint: **does Tax(ctx) increase monotonically with ctx**, and by how much between the short anchor and the longest ctx.
 
@@ -42,14 +60,16 @@ Per measure rep, capture and retain:
 1. **Prefix-cache** — `vllm:prefix_cache_hits_total`, `vllm:prefix_cache_queries_total` (hit rate), and per-step scheduled prefill-chunk sizes from DEBUG scheduler logs.
 2. **Chunked-prefill vs decode split** — `vllm:iteration_tokens_total` histogram + `vllm:num_requests_running/waiting`; count prefill-heavy vs decode-only iterations. Suppressor72's lead is that the divergence is concentrated in chunked prefill, not steady decode (their decode-worker time was flat: 13.77 vs 14.10 ms).
 3. **cg_mode** — verbatim `cudagraph_mode` + any downgrade warning from the server log (as in `tax_decomposition` CUDAGRAPH_MODES.txt).
-4. **Scheduler step census** — DEBUG scheduler lines (scheduled tokens, running/waiting) → `parse_scheduler_log.py`.
+4. **Per-step token census** — `vllm:iteration_tokens_total` **histogram bucket deltas** around each measured run, split into decode-only vs prefill-heavy steps at the concurrency ceiling.
+
+   ‼️ **Instrument changed 2026-08-23, before any measurement.** The original plan parsed DEBUG scheduler lines (`parse_scheduler_log.py`). Checked against `vllm-project/vllm@e25c586b90`: **current vLLM emits no per-step scheduler DEBUG line at all** — the only `logger.debug` calls in `v1/core/sched/scheduler.py` concern KV-transfer state and connector reset — so that parser would have matched nothing on the rental. The histogram is also the better instrument here: it needs no DEBUG logging, whose overhead would have taxed the very step timing this study measures. The parser has been removed rather than left to look functional.
 5. **nsys** — one wrapped run of arm B at the longest ctx (kernel/timeline attribution Suppressor72 lacks).
 
 ## Attribution criteria (pre-committed)
 
 - **Primary:** Tax(49400) − Tax(400) in TPOT %. Report as the ctx-scaling magnitude regardless of sign; do not soft-sell if flat.
 - **Mechanism verdict** (which of these the extra ctx-time concentrates in), by the instrumentation, ranked before running:
-  - (H-sched) chunked-prefill / prefix-cache-hit re-processing bursts — Suppressor72's leading lead (cache-hit KV-block drop → token re-processing). Signature: prefill-iteration count and prefill-token totals grow super-linearly with ctx in arm B vs A; prefix-cache hit rate diverges between arms.
+  - (H-sched) chunked-prefill / prefix-cache-hit re-processing bursts — Suppressor72's leading lead (cache-hit KV-block drop → token re-processing). Signature: `prefill_step_frac` and the high `iteration_tokens` buckets grow super-linearly with ctx in arm B vs A; prefix-cache hit rate diverges between arms.
   - (H-decode) steady-decode per-step cost — signature: decode-only iteration time grows with ctx and dominates. Suppressor72's data argues against this.
   - (H-kernel) forward/attention kernel scaling — signature: nsys shows attention/allreduce kernels scaling; only invoked if H-sched/H-decode don't account for the wall delta.
 - **Honesty gates:** if Tax(ctx) does not scale on our stack, that is a negative cross-stack result and gets reported as such (our stack = Gemma/H100/shared-KV differs from theirs = Qwen/5090/own-KV/MoE). If the mechanism is ambiguous, report leads, not a cause — same discipline that kept the uplift result at WEAK.

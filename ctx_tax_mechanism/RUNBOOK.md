@@ -36,8 +36,9 @@ python master_bench_ctxtax.py no_spec dsd_k0
 ```
 
 Each arm: cold-start burn (2×c64), then per ctx 1 warmup + 3 measure (32k/49k) or
-3+3 (short). Server runs at `VLLM_LOGGING_LEVEL=DEBUG`; the DEBUG log is copied to
-`RESULTS_DIR/server_{arm}.log` for the scheduler census.
+3+3 (short). The per-step census comes from `/metrics` histogram deltas around each
+measured run — **the server runs at default log level on purpose**, since DEBUG
+logging would tax the step timing under study.
 
 ### nsys (arm B, longest ctx only — kernel/timeline attribution Suppressor72 lacks)
 
@@ -49,13 +50,13 @@ NSYS=1 python master_bench_ctxtax.py dsd_k0 --only-ctx 49400
 
 ```bash
 python aggregate_ctxtax.py                       # Tax(ctx) table + primary endpoint
-python parse_scheduler_log.py $RESULTS_DIR/server_no_spec.log $RESULTS_DIR/server_dsd_k0.log \
-    --out $RESULTS_DIR/scheduler_census.json     # prefill vs decode steps per arm
 ```
 
-**Confirm the DEBUG format first:** `grep -i schedul $RESULTS_DIR/server_dsd_k0.log | head`.
-If `parse_scheduler_log.py` reports `WARNING: 0 steps parsed`, update `PATTERNS`
-to the build's actual line format before trusting the prefill/decode split.
+The prefill/decode census is already in each rep's JSON (`iteration_tokens_buckets`,
+plus the `census_split` reading at that ctx's concurrency) — no log parsing step.
+**Sanity-check once at the first ctx:** the bucket deltas must be non-empty and their
+total must track the run's step count; an all-zero histogram means the metric name
+moved and the census is void for that build.
 
 ## 4. Read (pre-committed, PREREGISTRATION §Attribution)
 
