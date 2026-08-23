@@ -69,9 +69,54 @@ Per measure rep, capture and retain:
 
 - **Primary:** Tax(49400) − Tax(400) in TPOT %. Report as the ctx-scaling magnitude regardless of sign; do not soft-sell if flat.
 - **Mechanism verdict** (which of these the extra ctx-time concentrates in), by the instrumentation, ranked before running:
+  - **(H-waste) the K=0 arm is not actually K=0 on MRV2** — added 2026-08-23 from
+    [#51510](https://github.com/vllm-project/vllm/issues/51510) /
+    [PR #51575](https://github.com/vllm-project/vllm/pull/51575) (Suppressor72, open):
+    `AutoRegressiveSpeculator` under `VLLM_USE_V2_MODEL_RUNNER=1` ignores the scheduler's
+    per-step K and runs the **full configured draft pipeline**, discarding the output. A
+    wasted draft step attends over the whole KV, so its cost **grows with ctx** — which is
+    the shape of the −8.5% → −35% scaling that is currently unexplained on their stack.
+
+    ‼️ **This is excluded by construction on our stack, and that is the point.** Verified in
+    `vllm-project/vllm@e25c586b90`: the V1 runner threads
+    `scheduler_output.num_spec_tokens_to_schedule` into every proposer
+    (`gpu_model_runner.py:5133–5377`, e.g. `self.drafter.propose(num_speculative_tokens=
+    num_spec_tokens_to_schedule, ...)` at :5225), while **no file under
+    `vllm/v1/worker/gpu/` references that field at all**. Our arm B is V1, so it is
+    genuinely K=0.
+
+    This turns the study into a **discriminating** measurement rather than a fishing trip:
+    - Tax(ctx) **scales on our V1 stack too** → there is a second, structural mechanism
+      independent of #51510, and #49986 is not merely that bug.
+    - Tax(ctx) **is flat on V1** while theirs scales → the leading answer to #49986 is the
+      MRV2 wasted-draft bug, and PR #51575 is the fix. Either way the result is decisive,
+      which the original open-ended mechanism hunt was not.
+
+    **Free cross-check on data we already hold (no rental):** `tax_decomposition/` measured
+    the same K=0 tier at **V1 +7.29%** vs **V2 +16.64%** (ctx 4000). Under H-waste the V2−V1
+    gap *is* the wasted draft work, since V2 is exactly the runner that ignores K=0. That is
+    a prediction our existing numbers already satisfy in sign and rough magnitude, and it was
+    read out of the runner source, not fitted.
+
+  - **(H-kv) drafter KV reservation shrinks the target's usable pool** — added 2026-08-23
+    from LongSpec ([2502.17421](https://arxiv.org/abs/2502.17421)), which identifies "the
+    excessive memory demands posed by draft models due to large Key-Value (KV) cache" as
+    *the* long-context drafting problem and answers it with a constant-size draft KV cache.
+    If the drafter's KV grows with ctx, arm B has less pool than arm A at the same
+    concurrency. Signature: `GPU KV cache size` differs A vs B, and/or
+    `vllm:num_preemptions_total` rises with ctx in B only. Cheap to read — both are already
+    captured.
+
   - (H-sched) chunked-prefill / prefix-cache-hit re-processing bursts — Suppressor72's leading lead (cache-hit KV-block drop → token re-processing). Signature: `prefill_step_frac` and the high `iteration_tokens` buckets grow super-linearly with ctx in arm B vs A; prefix-cache hit rate diverges between arms.
   - (H-decode) steady-decode per-step cost — signature: decode-only iteration time grows with ctx and dominates. Suppressor72's data argues against this.
   - (H-kernel) forward/attention kernel scaling — signature: nsys shows attention/allreduce kernels scaling; only invoked if H-sched/H-decode don't account for the wall delta.
+- **Excluded by construction (do not spend the rental on it):** acceptance collapse at long
+  context — OWL ([2510.07535](https://arxiv.org/abs/2510.07535)) shows EAGLE3 falling to an
+  acceptance length of 1.28 and running **0.81× slower than standard decoding** on 4K–64K
+  inputs. That is a real long-context speculative-decoding tax, but it is an *acceptance*
+  phenomenon, and arm B emits no draft tokens to accept or reject. It cannot explain a K=0
+  tax on either stack.
+
 - **Honesty gates:** if Tax(ctx) does not scale on our stack, that is a negative cross-stack result and gets reported as such (our stack = Gemma/H100/shared-KV differs from theirs = Qwen/5090/own-KV/MoE). If the mechanism is ambiguous, report leads, not a cause — same discipline that kept the uplift result at WEAK.
 
 ## Cross-stack framing
