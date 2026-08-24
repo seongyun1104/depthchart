@@ -60,6 +60,11 @@ POOL_RE = re.compile(r"GPU KV cache size: ([\d,]+) tokens")
 MEM_RE = re.compile(r"Available KV cache memory: ([\d.]+) GiB")
 CAPTURE_RE = re.compile(r"Capturing CUDA graphs \((?:mixed prefill-decode|decode), (\w+)\):\s*100%\|[^|]*\|\s*(\d+)/(\d+)")
 MODE_RE = re.compile(r"'cudagraph_mode': <CUDAGraphMode\.(\w+)")
+COMPCFG_RE = re.compile(r"compilation_config=(\{.*?\}), kernel_config=")
+VOLATILE_KEYS = {"cudagraph_mode": r"<[^>]*>",
+                 "cache_dir": r"[^,}]*",
+                 "local_cache_dir": r"[^,}]*",
+                 "debug_dump_path": r"[^,}]*"}
 KV_PIN_SAFETY_MIB = int(os.environ.get("KV_PIN_SAFETY_MIB", "128"))
 
 
@@ -88,18 +93,6 @@ def parse_pool(tag):
     tokens = int(tok[-1].replace(",", "")) if tok else None
     gib = float(mem[-1]) if mem else None
     return tokens, gib
-
-
-def stable_pool(arm):
-    """Pool of this arm's launches after the discarded first one.
-
-    The first launch of an arm profiles ~0.53 GiB less KV memory than every
-    launch after it, so a value read from it is not comparable across arms.
-    """
-    kept = [e for e in load_pools() if e["arm"] == arm and not e["discarded"]]
-    if not kept:
-        return None, None
-    return kept[-1]["tokens"], kept[-1]["gib"]
 
 
 def assert_pools_comparable(arm_a, arm_b):
@@ -251,6 +244,43 @@ def assert_graph_mode(arm, tag):
     print(f"[{tag}] cudagraph {declared} captures={counts}", flush=True)
 
 
+def compilation_fingerprint(tag):
+    """The compilation config with the keys this study varies masked out."""
+    text = Path(f"/tmp/server_{tag}.log").read_text(errors="ignore")
+    m = COMPCFG_RE.search(text)
+    if not m:
+        return None
+    cfg = m.group(1)
+    for key, pattern in VOLATILE_KEYS.items():
+        cfg = re.sub(rf"'{key}': {pattern}", f"'{key}': <masked>", cfg)
+    return cfg
+
+
+def assert_compilation_matches(arm, tag):
+    """Forcing cudagraph_mode must change only cudagraph_mode.
+
+    --compilation-config is passed as JSON, so a merge that turned out to be a
+    replace would silently move splitting_ops or the capture sizes underneath
+    the forced-PIECEWISE arms and the 2x2 would be comparing two different
+    baselines.
+    """
+    fp = compilation_fingerprint(tag)
+    ref_path = RESULTS_DIR / "compilation_fingerprint.txt"
+    (RESULTS_DIR / f"compcfg_{tag}.txt").write_text(fp or "<unparsed>")
+    if fp is None:
+        raise SystemExit(f"could not parse compilation_config for {tag}")
+    if not ref_path.exists():
+        ref_path.write_text(fp)
+        return
+    ref = ref_path.read_text()
+    if fp != ref:
+        (RESULTS_DIR / f"compcfg_mismatch_{tag}.txt").write_text(
+            f"reference:\n{ref}\n\nthis arm ({arm}):\n{fp}\n")
+        raise SystemExit(
+            f"arm {arm} differs from the reference compilation config in more "
+            f"than {sorted(VOLATILE_KEYS)}; see compcfg_mismatch_{tag}.txt")
+
+
 def assert_pinned(arm, tag, tokens):
     if kv_bytes_for(arm) is None:
         return
@@ -330,6 +360,7 @@ def run_cell(arm, concurrency):
         record_launch(arm, tag, tokens, gib, discarded=False)
         assert_concurrency_fits(concurrency, tokens)
         assert_graph_mode(arm, tag)
+        assert_compilation_matches(arm, tag)
         cold_start_burn()
         out_dir = RESULTS_DIR / "grid" / arm / f"ctx_{CTX}_c{concurrency}"
         out_dir.mkdir(parents=True, exist_ok=True)
