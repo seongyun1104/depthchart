@@ -29,11 +29,20 @@ batch.**
   across a 90× batch range.
 
 The context and batch axes had to be separated by hand. The KV pool couples
-them — 125 435 tokens with the drafter loaded means concurrency 189 at ctx 400
-but only 2 at ctx 38 000 — so a sweep that lets concurrency follow context
-mixes a +15 pp batch effect into the context reading. The fixed-batch column
-(C=2) is what isolates context; the production-shaped cells are reported but
-are not the endpoint.
+them — with the drafter loaded, concurrency 189 fits at ctx 400 but only 2 at
+ctx 38 000 — so a sweep that lets concurrency follow context mixes a +15 pp
+batch effect into the context reading. The fixed-batch column (C=2) is what
+isolates context; the production-shaped cells are reported but are not the
+endpoint.
+
+The per-cell concurrency was set from the pool measured in a dedicated probe
+launch before the sweep (`kv3.log`, 125 435 tokens), using the harness rule
+`concurrency = floor(0.9 * pool / (ctx + 197))`, where 197 is the request
+suffix this workload adds (`--prefix-repetition-suffix-len 96`,
+`--prefix-repetition-output-len 100`, plus one). That reproduces the four
+concurrencies used — 189, 26, 6, 2 — exactly. Note this probe figure is not
+the same launch as the pool numbers in §4, which are what the sweep's own
+servers reported; see the launch-order note there.
 
 ## 2. Replication of `tax_decomposition/`
 
@@ -81,14 +90,43 @@ currently no configuration that gives dynamic SD without one of the two.
 
 ## 4. Drafter KV cost (H-kv)
 
-Same box, same target, same flags, K=0 throughout:
+Same box, same flags throughout — every launch in this study ran at
+`gpu_memory_utilization=0.9` and `max_model_len=52224`, and the only
+configuration difference between arms is the presence of `speculative_config`.
 
-| arm | GPU KV cache size |
-|---|---|
-| `no_spec` | 140 459 tokens |
-| `dsd_k0` | 127 021 tokens |
+The profiled pool is not identical across launches, and the pattern is
+systematic rather than random. Ordered by launch time:
 
-**13 438 tokens (9.6 %) of the pool are spent on a drafter that never drafts.**
+| launch | arm | GPU KV cache size |
+|---|---|---:|
+| 11:52 `kv3` probe | `dsd_k0` | 125 435 tokens |
+| 11:57 `ctx400_c2` | `no_spec` | 140 459 tokens |
+| 12:03 – 12:42, five launches | `dsd_k0` | 127 021 tokens (all five) |
+| 12:08 – 12:38, four launches | `no_spec` | 142 046 tokens (all four) |
+
+**The first launch of each arm is low by 1 586–1 587 tokens, and every launch
+after it is stable to the token.** The same offset appearing in both arms rules
+out random profiling noise; the cause is not established here, container start
+state being the obvious suspect.
+
+That matters for the pairing. Comparing like launch to like launch:
+
+| pairing | drafter cost |
+|---|---:|
+| both stable (142 046 − 127 021) | **15 025 tokens (10.6 %)** |
+| both first-launch (140 459 − 125 435) | **15 024 tokens (10.7 %)** |
+
+Two independent pairings agree to one token. **≈15 025 tokens — about 10.6 % of
+the pool — are spent on a drafter that never drafts.** By the harness's own
+sizing rule that is concurrency 189–191 with the drafter against 211–214
+without it, so roughly 22 concurrent requests at this workload's shape.
+
+(An earlier version of this section paired `no_spec ctx400_c2` with the `dsd_k0`
+sweep pool and reported 13 438 tokens / 9.6 %. Those are both real log values
+from the same cell, but `no_spec ctx400_c2` is that arm's first launch while the
+`dsd_k0` cell is its second, so the pairing crossed the launch-order offset and
+understated the cost by about 1 pp.)
+
 This is the concrete form of the drafter-KV problem LongSpec
 ([2502.17421](https://arxiv.org/abs/2502.17421)) answers with a constant-size
 draft cache. It does not show up in TPOT; it shows up as concurrency you cannot
@@ -148,3 +186,7 @@ rather than context.
   far larger collapse on that axis.
 - The tax is measured at K=0. It is the cost of having dynamic SD enabled, not
   the cost of speculating.
+- The profiled KV pool carries a first-launch offset of ~1 586 tokens (§4). Any
+  future run that compares pools — in particular a `num_gpu_blocks_override`
+  arm sized against a measured pool — has to discard the first launch of each
+  arm, or match launch positions, or it will be reading this artifact.
