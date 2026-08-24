@@ -31,6 +31,8 @@ KV_LOW_MIB = int(os.environ.get("KV_LOW_MIB", "0")) or None
 
 CTX = int(os.environ.get("CTX", "400"))
 CONCURRENCIES = [int(c) for c in os.environ.get("CONCURRENCIES", "189,2").split(",")]
+LADDER = [int(c) for c in os.environ.get("LADDER", "189,1,32,8,64,128,16,4,2").split(",")]
+LADDER_ARMS = ["base_full_high", "dsd_k0_low"]
 SUFFIX_TOKENS = 197
 POOL_MARGIN = 0.9
 
@@ -133,10 +135,14 @@ def assert_arm_is_k0(concurrency):
     raise SystemExit(f"concurrency={concurrency} falls outside {DSD_K0_SCHEDULE}")
 
 
-def assert_concurrency_fits(concurrency, pool_tokens):
+def concurrency_fits(concurrency, pool_tokens):
     need = concurrency * (CTX + SUFFIX_TOKENS)
-    cap = POOL_MARGIN * pool_tokens
-    if need > cap:
+    return need <= POOL_MARGIN * pool_tokens, need, POOL_MARGIN * pool_tokens
+
+
+def assert_concurrency_fits(concurrency, pool_tokens):
+    fits, need, cap = concurrency_fits(concurrency, pool_tokens)
+    if not fits:
         raise SystemExit(
             f"concurrency={concurrency} needs {need} tokens but the pool cap is "
             f"{cap:.0f} ({pool_tokens} x {POOL_MARGIN}); the cell would preempt")
@@ -414,14 +420,24 @@ def cold_start_burn():
     time.sleep(30)
 
 
-def run_cell(arm, concurrency):
+def run_cell(arm, concurrency, strict=True):
     tag = f"{arm}_c{concurrency}"
     proc, log = launch_server(arm, tag)
     try:
         tokens, gib = parse_pool(tag)
         assert_pinned(arm, tag, tokens)
         record_launch(arm, tag, tokens, gib, discarded=False)
-        assert_concurrency_fits(concurrency, tokens)
+        if strict:
+            assert_concurrency_fits(concurrency, tokens)
+        else:
+            fits, need, cap = concurrency_fits(concurrency, tokens)
+            (RESULTS_DIR / f"fit_{tag}.json").write_text(json.dumps(
+                {"fits": fits, "need_tokens": need, "cap_tokens": cap,
+                 "pool_tokens": tokens}, indent=2))
+            if not fits:
+                print(f"    [{tag}] over the pool rule: needs {need} of "
+                      f"{cap:.0f}; measuring anyway, preemptions recorded",
+                      flush=True)
         assert_graph_mode(arm, tag)
         assert_compilation_matches(arm, tag)
         cold_start_burn()
@@ -487,11 +503,37 @@ def run_paired():
     assert_pools_comparable("base_full_high", "dsd_k0_low")
 
 
+def run_ladder():
+    """Fixed context, concurrency swept, both arms at each rung.
+
+    Rung order spans the range rather than climbing it, so an interrupted run
+    still says something about the shape. A threshold and a smooth ramp are only
+    distinguishable with coverage, which is the whole question against #49548.
+    """
+    pinned = bool(KV_HIGH_MIB and KV_LOW_MIB)
+    print(f"ladder pools: {'pinned' if pinned else 'natural (production shape)'}",
+          flush=True)
+    done = []
+    for concurrency in LADDER:
+        print(f"\n===== ladder rung c={concurrency} =====", flush=True)
+        for arm in LADDER_ARMS:
+            if not any(e["arm"] == arm and e["discarded"] for e in load_pools()):
+                discard_first_launch(arm)
+            run_cell(arm, concurrency, strict=False)
+        done.append(concurrency)
+        (RESULTS_DIR / "LADDER_DONE.txt").write_text(
+            "\n".join(str(c) for c in done) + "\n")
+        print(f"===== rung c={concurrency} COMPLETE (done: {sorted(done)}) =====",
+              flush=True)
+    assert_pools_comparable(*LADDER_ARMS)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("arms", nargs="*", default=[], choices=ARM_ORDER + [])
     ap.add_argument("--probe", action="store_true")
     ap.add_argument("--paired", action="store_true")
+    ap.add_argument("--ladder", action="store_true")
     ap.add_argument("--conc", type=int, default=0)
     args = ap.parse_args()
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -500,6 +542,9 @@ def main():
         return
     if args.paired:
         run_paired()
+        return
+    if args.ladder:
+        run_ladder()
         return
     for arm in args.arms:
         if not any(e["arm"] == arm and e["discarded"] for e in load_pools()):

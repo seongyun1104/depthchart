@@ -114,6 +114,35 @@ A negative result on any of these is reported as measured. The
   pool` before measuring, the same rule that set the concurrencies in
   `ctx_tax_mechanism`, so no cell silently measures preemption instead.
 
+## The ladder, registered separately
+
+The same harness runs a concurrency ladder at fixed context with two arms,
+`base_full_high` and `dsd_k0_low`, over rungs 1 to 189. It answers a different
+question from the 2x2 and carries its own prediction.
+
+`ctx_tax_mechanism` has two concurrency points, which cannot tell a threshold
+from a smooth ramp. #49548 reports a collapse "at the batch-size threshold", so
+the distinction decides whether our data corroborates that report or merely
+rhymes with it. This was stated as unresolved when the ctx result was posted to
+that issue and is the promise being paid here.
+
+- **Registered prediction.** The tax rises monotonically with concurrency, with
+  no rung where it jumps by more than half the total range in one doubling. A
+  jump that large is a threshold and would corroborate #49548 directly; smooth
+  growth means our result is a different phenomenon from theirs and the two
+  should stop being cited together.
+- **Pools are natural, not pinned.** The ladder is the production-shaped
+  comparison, so each arm profiles its own pool and the drafter's KV footprint
+  is allowed to bind at high concurrency. That asymmetry is the effect under
+  study, not a confound to remove. The first-launch discard still applies.
+- **Rungs run in span order** (189, 1, 32, 8, 64, 128, 16, 4, 2), not climbing
+  order, so an interrupted rental still covers the range.
+- **Over-cap rungs are measured, not skipped.** Where a rung exceeds
+  `concurrency x (ctx + 197) < 0.9 x pool` for an arm, the cell records
+  `fits: false` with its preemption count and runs anyway. The concurrency at
+  which the spec arm starts preempting while the baseline does not is itself the
+  measurement, so aborting there would discard the answer.
+
 ## Limits accepted in advance
 
 One GPU, one target, one drafter, one workload shape, one context. This study
