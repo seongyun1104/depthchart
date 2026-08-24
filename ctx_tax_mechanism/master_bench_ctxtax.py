@@ -343,7 +343,7 @@ def census_split(hist_delta, concurrency):
     }
 
 
-def snapshot_delta(m0, m1, elapsed):
+def snapshot_delta(m0, m1, elapsed, concurrency):
     d = {"elapsed_sec": elapsed}
     for m in DELTA_METRICS:
         d[m.replace("vllm:", "").replace("_total", "_delta")] = parse_metric(m1, m) - parse_metric(m0, m)
@@ -351,6 +351,7 @@ def snapshot_delta(m0, m1, elapsed):
         hd = histogram_delta(parse_histogram(m0, m), parse_histogram(m1, m))
         key = m.replace("vllm:", "").replace("_total", "")
         d[key + "_buckets"] = hd
+        d[key + "_census"] = census_split(hd, concurrency)
     return d
 
 
@@ -416,7 +417,7 @@ def phase_grid(arm, only_ctx, conc=None):
             m1 = get_metrics()
             if m0 and m1:
                 (out_dir / f"snapshot_{label}_{seed}.json").write_text(
-                    json.dumps(snapshot_delta(m0, m1, elapsed), indent=2))
+                    json.dumps(snapshot_delta(m0, m1, elapsed, c), indent=2))
             print(f"    [{arm}][ctx={ctx}][{label}_{seed}] elapsed={elapsed:.1f}s rc={rc}", flush=True)
 
 

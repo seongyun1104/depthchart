@@ -58,6 +58,24 @@ Derived quantities:
    the drafter's graph mode and the drafter's pool should reproduce the spec
    arm's cost without any drafter present.
 
+### The decision rule, fixed before any data
+
+A residual counts against a prediction only when it clears both bars:
+
+- **resolvable** — larger than twice the standard error of the difference,
+  propagated across the cells that enter it;
+- **material** — larger than 10 % of the total term at that concurrency.
+
+Both bars are needed. With three measured runs per cell the standard error is
+small enough that sampling noise alone flips a verdict: replaying the aggregator
+over a synthetic grid whose arms were given *identical* means produced a P3
+failure from noise at the low-concurrency cell, where the total term is about
+1 ms. A residual that is resolvable but immaterial is reported in those words
+rather than as either a pass or a failure.
+
+This rule is written here, before the run, precisely because choosing it after
+seeing the residuals would be choosing the answer.
+
 No magnitude is registered for any term. `ctx_tax_mechanism` §5 is the reason:
 the tax is a ratio whose denominator is the step cost, so its size is a
 property of the model and batch, not something to predict in advance.

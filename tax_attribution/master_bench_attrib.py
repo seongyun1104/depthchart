@@ -45,6 +45,10 @@ ARMS = {
 }
 ARM_ORDER = ["base_full_high", "base_piece_high", "base_full_low", "base_piece_low", "dsd_k0_low"]
 
+HISTOGRAM_METRICS = [
+    "vllm:iteration_tokens_total",
+]
+
 DELTA_METRICS = [
     "vllm:spec_decode_num_drafts_total",
     "vllm:spec_decode_num_draft_tokens_total",
@@ -300,20 +304,79 @@ def get_metrics():
         return None
 
 
-def scrape(text, name):
+def parse_metric(text, name):
     total = 0.0
     for line in text.split("\n"):
-        if line.startswith(name) and "_bucket" not in line:
+        if line.startswith(name + " ") or (line.startswith(name) and "{" in line):
             try:
-                total += float(line.rsplit(" ", 1)[1])
+                total += float(line.split()[-1])
             except (ValueError, IndexError):
                 pass
     return total
 
 
-def snapshot_delta(m0, m1, elapsed):
-    return {"elapsed_s": elapsed,
-            **{f"{m}_delta": scrape(m1, m) - scrape(m0, m) for m in DELTA_METRICS}}
+def parse_histogram(text, name):
+    """Return {le_bound: cumulative_count} for a Prometheus histogram."""
+    buckets = {}
+    prefix = name + "_bucket{"
+    for line in text.split("\n"):
+        if not line.startswith(prefix):
+            continue
+        try:
+            le = line.split('le="', 1)[1].split('"', 1)[0]
+            buckets[le] = buckets.get(le, 0.0) + float(line.split()[-1])
+        except (ValueError, IndexError):
+            pass
+    return buckets
+
+
+def histogram_delta(h0, h1):
+    """Cumulative bucket deltas -> per-bucket step counts (non-cumulative)."""
+    def _key(le):
+        return float("inf") if le == "+Inf" else float(le)
+
+    delta = {le: h1.get(le, 0.0) - h0.get(le, 0.0) for le in h1}
+    ordered = sorted(delta, key=_key)
+    out, prev = {}, 0.0
+    for le in ordered:
+        out[le] = delta[le] - prev
+        prev = delta[le]
+    return out
+
+
+def census_split(hist_delta, concurrency):
+    """Split steps into decode-only vs prefill-heavy.
+
+    A decode-only step schedules ~1 token per running request, so it cannot
+    exceed the concurrency ceiling; anything above that bucket carries a
+    prefill chunk. Reported alongside the raw buckets -- the threshold is a
+    reading aid, not a measurement.
+    """
+    decode = prefill = 0.0
+    for le, n in hist_delta.items():
+        bound = float("inf") if le == "+Inf" else float(le)
+        if bound <= concurrency:
+            decode += n
+        else:
+            prefill += n
+    total = decode + prefill
+    return {
+        "decode_only_steps": decode,
+        "prefill_heavy_steps": prefill,
+        "prefill_step_frac": (prefill / total) if total else None,
+    }
+
+
+def snapshot_delta(m0, m1, elapsed, concurrency):
+    d = {"elapsed_sec": elapsed}
+    for m in DELTA_METRICS:
+        d[m.replace("vllm:", "").replace("_total", "_delta")] = parse_metric(m1, m) - parse_metric(m0, m)
+    for m in HISTOGRAM_METRICS:
+        hd = histogram_delta(parse_histogram(m0, m), parse_histogram(m1, m))
+        key = m.replace("vllm:", "").replace("_total", "")
+        d[key + "_buckets"] = hd
+        d[key + "_census"] = census_split(hd, concurrency)
+    return d
 
 
 def run_bench(arm, concurrency, out_dir, out_file):
@@ -375,7 +438,7 @@ def run_cell(arm, concurrency):
             m1 = get_metrics()
             if m0 and m1:
                 (out_dir / f"snapshot_{label}_{seed}.json").write_text(
-                    json.dumps(snapshot_delta(m0, m1, elapsed), indent=2))
+                    json.dumps(snapshot_delta(m0, m1, elapsed, concurrency), indent=2))
             print(f"    [{arm}][c={concurrency}][{label}_{seed}] "
                   f"elapsed={elapsed:.1f}s rc={rc}", flush=True)
     finally:
