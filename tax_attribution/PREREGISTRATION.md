@@ -14,8 +14,16 @@ was isolated:
 - **graph term** — enabling dynamic SD forces `cudagraph_mode` from
   `FULL_AND_PIECEWISE` down to `PIECEWISE`, so the decode path loses its full
   CUDA graphs.
-- **KV term** — the drafter holds ~15 025 tokens, about 10.6 % of the pool,
+- **pool term** — the drafter costs ~15 025 tokens, about 10.6 % of the pool,
   while never drafting, which costs concurrency rather than per-token latency.
+  The memory profiler attributes ~79 % of that to the activation peak it
+  reserves when the drafter is present and only ~21 % to its weights, so this
+  is a capacity reservation and not a draft KV allocation.
+- **sync-forward term** — v0.27.1 places the K=0 early return *after* the
+  drafter's forward, so a forward runs on every step of the spec arm even
+  though no draft token is produced. Our own fork measurement bounds it at
+  +0.71 % TPOT on this stack; Suppressor72 measures 4–11 % of step time on
+  other drafter architectures (#53420, #53426).
 
 Every dsd arm carries both, so the +15.02 pp of batch scaling cannot be
 attributed. This study varies them independently.
@@ -41,22 +49,28 @@ controlled variable rather than a profiling outcome.
 Derived quantities:
 
 - graph term = `base_piece_high` − `base_full_high`
-- KV term = `base_full_low` − `base_full_high`
+- pool term = `base_full_low` − `base_full_high`
 - total = `dsd_k0_low` − `base_full_high`
-- residual = `dsd_k0_low` − `base_piece_low`
+- sync-forward + bookkeeping = `dsd_k0_low` − `base_piece_low`
 
 ## Predictions, registered in advance
 
-1. **Additivity.** graph term + KV term ≈ total. Registered as an ordering and
+1. **Additivity.** graph term + pool term ≈ total, once the sync-forward term
+   is included. Registered as an ordering and
    sign claim, not a magnitude: both terms are positive, and their sum accounts
    for the total to within the run-to-run spread of the baseline cells.
-2. **Regime.** The KV term is ≈0 at concurrency 2 and materially positive at
+2. **Regime.** The pool term is ≈0 at concurrency 2 and materially positive at
    concurrency 189; the graph term is positive at both. This is the specific
    claim that the batch scaling reported in `ctx_tax_mechanism` belongs mostly
-   to the KV term.
-3. **Reconstruction.** `base_piece_low` ≈ `dsd_k0_low`. A no-spec server with
-   the drafter's graph mode and the drafter's pool should reproduce the spec
-   arm's cost without any drafter present.
+   to the pool term.
+3. **Reconstruction, and the sync forward.** `base_piece_low` ≈ `dsd_k0_low`.
+   A no-spec server with the drafter's graph mode and the drafter's pool has no
+   drafter and therefore runs no sync forward, so whatever separates it from the
+   spec arm *is* the forward plus spec-path bookkeeping. This cell is the direct
+   measurement of the term §3 of `ctx_tax_mechanism` originally left out. We
+   predict it is small here, consistent with the +0.71 % our fork measured when
+   skipping that forward, and we register in advance that a large residual would
+   mean that earlier measurement does not generalise even within this stack.
 
 ### The decision rule, fixed before any data
 
@@ -84,9 +98,9 @@ property of the model and batch, not something to predict in advance.
 
 | result | reading |
 |---|---|
-| P1, P2, P3 all hold | the tax is fully explained by graph mode plus drafter KV occupancy; #52087 recovers the graph term only, and the KV term needs a constant-size draft cache |
-| P1 holds, P2 fails (KV term flat in batch) | the batch scaling is the graph term's, and preserving FULL graphs recovers most of the tax at high batch |
-| P3 fails, `dsd_k0_low` slower than `base_piece_low` | a third cost exists — spec-path bookkeeping that neither mechanism covers — and it, not the two known terms, is what the next study must chase |
+| P1, P2, P3 all hold | the tax is fully explained by graph mode plus the pool reservation; #52087 recovers the graph term only, and the pool term needs the drafter's activation peak to shrink, not a smaller draft cache |
+| P1 holds, P2 fails (pool term flat in batch) | the batch scaling is the graph term's, and preserving FULL graphs recovers most of the tax at high batch |
+| P3 fails, `dsd_k0_low` slower than `base_piece_low` | the K=0 sync forward costs real time on this stack after all, our +0.71 % bound does not hold at these cells, and #53426 becomes directly relevant here rather than only on other stacks |
 | P1 fails, terms sub-additive | the two mechanisms interact; the decomposition framing is wrong and must be retracted rather than reported with a caveat |
 
 A negative result on any of these is reported as measured. The

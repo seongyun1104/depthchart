@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Aggregate the 2x2 attribution grid into the graph term, the KV term and the
+Aggregate the 2x2 attribution grid into the graph term, the pool term and the
 residual, and check each pre-registered prediction (PREREGISTRATION.md).
 
 Reads:
@@ -17,7 +17,7 @@ BASE = "base_full_high"
 ARMS = ["base_full_high", "base_piece_high", "base_full_low", "base_piece_low", "dsd_k0_low"]
 TERMS = {
     "graph": "base_piece_high",
-    "kv": "base_full_low",
+    "pool": "base_full_low",
     "total": "dsd_k0_low",
 }
 
@@ -113,14 +113,14 @@ def report(conc):
               f"{c['decode_steps']:>5.0f}/{c['prefill_steps']:<5.0f}")
 
     terms = {k: cells[a]["mean"] - base["mean"] for k, a in TERMS.items()}
-    residual_add = terms["total"] - terms["graph"] - terms["kv"]
+    residual_add = terms["total"] - terms["graph"] - terms["pool"]
     sem_add = math.sqrt(sum(cells[a]["sem"] ** 2 for a in
-                            (BASE, TERMS["graph"], TERMS["kv"], TERMS["total"])))
+                            (BASE, TERMS["graph"], TERMS["pool"], TERMS["total"])))
     residual_spec = cells["dsd_k0_low"]["mean"] - cells["base_piece_low"]["mean"]
     sem_spec = math.hypot(cells["dsd_k0_low"]["sem"], cells["base_piece_low"]["sem"])
 
     print("  " + "-" * 84)
-    for name, key in (("graph term", "graph"), ("KV term", "kv"), ("total", "total")):
+    for name, key in (("graph term", "graph"), ("pool term", "pool"), ("total", "total")):
         print(f"  {name:<12} {terms[key]:>+8.3f} ms  ({100*terms[key]/base['mean']:>+6.2f}%)")
     floor = MATERIAL_FRAC * abs(terms["total"])
     p1 = verdict(residual_add, sem_add, floor)
@@ -150,9 +150,9 @@ def main():
             out.append(r)
     if len(out) >= 2:
         hi, lo = out[0], out[-1]
-        kv_hi, kv_lo = hi["terms_ms"]["kv"], lo["terms_ms"]["kv"]
+        kv_hi, kv_lo = hi["terms_ms"]["pool"], lo["terms_ms"]["pool"]
         gr_hi, gr_lo = hi["terms_ms"]["graph"], lo["terms_ms"]["graph"]
-        print(f"\nP2 (KV term is a batch effect): KV {kv_lo:+.3f} ms at c={lo['concurrency']} "
+        print(f"\nP2 (pool term is a batch effect): pool {kv_lo:+.3f} ms at c={lo['concurrency']} "
               f"-> {kv_hi:+.3f} ms at c={hi['concurrency']}; "
               f"graph {gr_lo:+.3f} -> {gr_hi:+.3f}")
         p2 = (abs(kv_hi) > abs(kv_lo)

@@ -83,12 +83,36 @@ for reliability. Use VLLM_USE_V2_MODEL_RUNNER=1 if you want to use full CUDA gra
 Enabling dynamic SD costs the decode path its full CUDA graphs even when the
 schedule never asks for a draft token.
 
+**Zero draft tokens is not zero drafter work, and this section originally read
+as though it were.** In v0.27.1 the K=0 branch sits *after* the drafter's
+forward, not before it (`vllm/v1/spec_decode/llm_base_proposer.py`, in
+`propose`):
+
+```python
+# No draft tokens requested (e.g. Dynamic SD decided K=0).
+# The prefill forward pass above already ran to keep the drafter
+# KV cache in sync, so just return an empty tensor.
+if self.num_speculative_tokens == 0:
+```
+
+So a sync forward of the drafter runs on every step of the spec arm. The
+`spec_decode_num_draft_tokens_delta = 0.0` above bounds the *rollout*, not the
+forward. What bounds the forward on this stack is our own earlier measurement:
+a fork that skips it at K=0 for shared-KV proposers moved TPOT by **+0.71 %**,
+i.e. very slightly slower and inside the noise
+([#49986, Aug 3](https://github.com/vllm-project/vllm/issues/49986#issuecomment-5162771381)).
+The conclusion that the graph mode is what costs time therefore stands, but it
+rests on that measurement rather than on the elimination this section first
+implied. Suppressor72 measures the same forward at 4–11 % of step time on a
+different drafter architecture (#53420, #53426), so its cost is a property of
+the drafter, not a constant.
+
 **The escape hatch the warning names is the one with the bug.** V1 honours K=0
 but is forced to PIECEWISE; MRV2 keeps full graphs but ignores the scheduler's
 K and runs the full draft pipeline anyway (#51510, fix in PR #51575). There is
 currently no configuration that gives dynamic SD without one of the two.
 
-## 4. Drafter KV cost (H-kv)
+## 4. Drafter pool cost (H-kv)
 
 Same box, same flags throughout — every launch in this study ran at
 `gpu_memory_utilization=0.9` and `max_model_len=52224`, and the only
@@ -121,16 +145,38 @@ the pool — are spent on a drafter that never drafts.** By the harness's own
 sizing rule that is concurrency 189–191 with the drafter against 211–214
 without it, so roughly 22 concurrent requests at this workload's shape.
 
+**It is not the drafter's KV cache, and mostly not its weights.** The memory
+profiler reports the split directly (`gpu_worker.py:789`, ctx 400 c 189):
+
+| term | `no_spec` | `dsd_k0` | delta |
+|---|---:|---:|---:|
+| consumed (weights + non-torch) | 32.29 GiB | 33.34 GiB | +1.05 |
+| peak activation | 4.49 GiB | 8.42 GiB | **+3.93** |
+| CUDA graph pool | 0.62 GiB | 0.60 GiB | −0.02 |
+| **available for KV** | **47.0 GiB** | **42.03 GiB** | **−4.97** |
+
+Drafter weights account for about a fifth of the loss. The dominant term is the
+activation peak the profiler reserves when the drafter is present — which is
+the same forward §3 describes, the one that runs at K=0. The two costs this
+study first described as separate mechanisms are one mechanism seen twice: the
+drafter's forward is charged once in time and once in capacity.
+
+Attributing the +3.93 GiB specifically to that forward would need more than
+these logs, since a spec-enabled profiling run also profiles longer query
+lengths. What the logs do establish is that the pool loss is an activation-peak
+reservation, not a draft KV allocation.
+
 (An earlier version of this section paired `no_spec ctx400_c2` with the `dsd_k0`
 sweep pool and reported 13 438 tokens / 9.6 %. Those are both real log values
 from the same cell, but `no_spec ctx400_c2` is that arm's first launch while the
 `dsd_k0` cell is its second, so the pairing crossed the launch-order offset and
 understated the cost by about 1 pp.)
 
-This is the concrete form of the drafter-KV problem LongSpec
-([2502.17421](https://arxiv.org/abs/2502.17421)) answers with a constant-size
-draft cache. It does not show up in TPOT; it shows up as concurrency you cannot
-have, which is why the batch axis above matters.
+It does not show up in TPOT; it shows up as concurrency you cannot have, which
+is why the batch axis above matters. An earlier version of this section read
+the loss as draft KV and cited LongSpec
+([2502.17421](https://arxiv.org/abs/2502.17421)), whose constant-size draft
+cache answers a problem this measurement turns out not to be about.
 
 ## 5. Why a second stack is in the raw, and what it is worth
 
