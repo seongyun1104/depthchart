@@ -20,7 +20,7 @@ Usage:
   # nsys wrap of arm B at the longest ctx (separate invocation):
   RESULTS_DIR=/root/results NSYS=1 python master_bench_ctxtax.py dsd_k0 --only-ctx 49400
 """
-import argparse, json, os, shutil, signal, subprocess, time
+import argparse, json, os, re, shutil, signal, subprocess, time
 from pathlib import Path
 from urllib.request import urlopen
 from urllib.error import URLError
@@ -33,6 +33,13 @@ RESULTS_DIR = Path(os.environ.get("RESULTS_DIR", "/root/results"))
 MAX_MODEL_LEN = int(os.environ.get("MAX_MODEL_LEN", "52224"))
 NSYS = os.environ.get("NSYS", "0") == "1"
 NUM_PROMPTS = int(os.environ.get("NUM_PROMPTS", "512"))
+
+POOL_RE = re.compile(r"GPU KV cache size: ([\d,]+) tokens")
+MEM_RE = re.compile(r"Available KV cache memory: ([\d.]+) GiB")
+CAPTURE_RE = re.compile(
+    r"Capturing CUDA graphs \((?:mixed prefill-decode|decode), (\w+)\):"
+    r"\s*100%\|[^|]*\|\s*(\d+)/(\d+)")
+MODE_RE = re.compile(r"'cudagraph_mode': <CUDAGraphMode\.(\w+)")
 
 ARMS = {"no_spec": False, "dsd_k0": True}
 # Arm B must mean the same thing at every ctx: "DSD enabled, drafting nothing".
@@ -80,6 +87,63 @@ DELTA_METRICS = [
 HISTOGRAM_METRICS = [
     "vllm:iteration_tokens_total",
 ]
+
+
+def pools_path():
+    return RESULTS_DIR / "pools.json"
+
+
+def load_pools():
+    return json.loads(pools_path().read_text()) if pools_path().exists() else []
+
+
+def record_launch(arm, tag, tokens, gib, discarded):
+    entries = load_pools()
+    entries.append({"arm": arm, "tag": tag,
+                    "launch_index": sum(1 for e in entries if e["arm"] == arm),
+                    "tokens": tokens, "gib": gib, "discarded": discarded})
+    pools_path().write_text(json.dumps(entries, indent=2))
+
+
+def parse_pool(tag):
+    text = Path(f"/tmp/server_{tag}.log").read_text(errors="ignore")
+    tok = POOL_RE.findall(text)
+    mem = MEM_RE.findall(text)
+    return (int(tok[-1].replace(",", "")) if tok else None,
+            float(mem[-1]) if mem else None)
+
+
+def parse_captures(tag):
+    text = Path(f"/tmp/server_{tag}.log").read_text(errors="ignore")
+    counts = {m: int(tot) for m, done, tot in CAPTURE_RE.findall(text) if done == tot}
+    declared = MODE_RE.findall(text)
+    return counts, (declared[-1] if declared else None)
+
+
+def assert_pools_comparable(arm_a, arm_b):
+    """Refuse to compare pools measured at different launch positions.
+
+    The first launch of an arm profiles ~0.53 GiB less KV memory than every
+    launch after it -- 1586-1587 tokens, the same offset in both arms, stable to
+    the token thereafter. Pairing across that offset is what made the first
+    published drafter-KV figure 1 pp low.
+    """
+    for arm in (arm_a, arm_b):
+        entries = [e for e in load_pools() if e["arm"] == arm]
+        if not entries:
+            raise SystemExit(f"no launch recorded for arm {arm}")
+        if not any(e["discarded"] for e in entries):
+            raise SystemExit(
+                f"arm {arm} has no discarded first launch; its pool carries the "
+                f"launch-order offset and is not comparable across arms")
+        kept = [e for e in entries if not e["discarded"]]
+        if not kept:
+            raise SystemExit(f"arm {arm} has only a discarded launch")
+        pools = {e["tokens"] for e in kept}
+        if len(pools) > 1:
+            raise SystemExit(
+                f"arm {arm} reported more than one pool across measured "
+                f"launches ({sorted(pools)}); the offset is not settled")
 
 
 def wipe_autotune():
@@ -174,9 +238,21 @@ def launch_server(arm, tag):
 
 
 def record_cudagraph_mode(tag):
-    log = Path(f"/tmp/server_{tag}.log").read_text(errors="ignore")
-    modes = [l for l in log.split("\n") if "cudagraph_mode" in l or "Dynamic speculative" in l]
-    (RESULTS_DIR / f"cudagraph_{tag}.txt").write_text("\n".join(modes[-40:]))
+    counts, declared = parse_captures(tag)
+    (RESULTS_DIR / f"captures_{tag}.json").write_text(
+        json.dumps({"declared_mode": declared, "captures": counts}, indent=2))
+    print(f"[{tag}] cudagraph {declared} captures={counts}", flush=True)
+
+
+def discard_first_launch(arm):
+    """Burn one launch per arm so measured launches sit in the box steady state."""
+    tag = f"{arm}_discard"
+    proc, log = launch_server(arm, tag)
+    tokens, gib = parse_pool(tag)
+    kill_server(proc, log)
+    shutil.copy(f"/tmp/server_{tag}.log", RESULTS_DIR / f"server_{tag}.log")
+    record_launch(arm, tag, tokens, gib, discarded=True)
+    print(f"[{arm}] discarded first launch: {tokens} tokens / {gib} GiB", flush=True)
 
 
 def kill_server(proc, log):
@@ -346,8 +422,12 @@ def phase_grid(arm, only_ctx, conc=None):
 
 def run_arm(arm, only_ctx, conc=None):
     tag = f"{arm}{'_nsys' if NSYS else ''}{f'_ctx{only_ctx}' if only_ctx else ''}{f'_c{conc}' if conc else ''}"
+    if not any(e["arm"] == arm and e["discarded"] for e in load_pools()):
+        discard_first_launch(arm)
     proc, log = launch_server(arm, tag)
     try:
+        tokens, gib = parse_pool(tag)
+        record_launch(arm, tag, tokens, gib, discarded=False)
         record_cudagraph_mode(tag)
         cold_start_burn()
         phase_grid(arm, only_ctx, conc)
@@ -383,6 +463,7 @@ def run_paired(ctx_order):
         (RESULTS_DIR / "PAIRS_DONE.txt").write_text(
             "\n".join(f"{c}\t{CTX_CONCURRENCY[c]}" for c in done) + "\n")
         print(f"===== ctx={ctx} PAIR COMPLETE (done: {done}) =====", flush=True)
+    assert_pools_comparable("no_spec", "dsd_k0")
 
 
 def main():
