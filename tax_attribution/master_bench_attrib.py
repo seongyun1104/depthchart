@@ -39,13 +39,17 @@ POOL_MARGIN = 0.9
 DSD_K0_SCHEDULE = [[1, 512, 0]]
 
 ARMS = {
-    "base_full_high":  {"spec": False, "cudagraph": None,        "pool": "high"},
-    "base_piece_high": {"spec": False, "cudagraph": "PIECEWISE", "pool": "high"},
-    "base_full_low":   {"spec": False, "cudagraph": None,        "pool": "low"},
-    "base_piece_low":  {"spec": False, "cudagraph": "PIECEWISE", "pool": "low"},
-    "dsd_k0_low":      {"spec": True,  "cudagraph": None,        "pool": "low"},
+    "base_full_high":       {"spec": False, "cudagraph": None,        "pool": "high", "cache": True},
+    "base_piece_high":      {"spec": False, "cudagraph": "PIECEWISE", "pool": "high", "cache": True},
+    "base_full_low":        {"spec": False, "cudagraph": None,        "pool": "low",  "cache": True},
+    "base_piece_low":       {"spec": False, "cudagraph": "PIECEWISE", "pool": "low",  "cache": True},
+    "dsd_k0_low":           {"spec": True,  "cudagraph": None,        "pool": "low",  "cache": True},
+    "base_piece_low_nocache": {"spec": False, "cudagraph": "PIECEWISE", "pool": "low", "cache": False},
+    "dsd_k0_low_nocache":     {"spec": True,  "cudagraph": None,        "pool": "low", "cache": False},
 }
 ARM_ORDER = ["base_full_high", "base_piece_high", "base_full_low", "base_piece_low", "dsd_k0_low"]
+NOCACHE_PAIR = ["base_piece_low_nocache", "dsd_k0_low_nocache"]
+NOCACHE_AT = [int(c) for c in os.environ.get("NOCACHE_AT", "189").split(",")]
 
 HISTOGRAM_METRICS = [
     "vllm:iteration_tokens_total",
@@ -159,7 +163,8 @@ def launch_server(arm, tag):
     wipe_autotune()
     cmd = ["vllm", "serve", MODEL, "--port", str(PORT),
            "--gpu-memory-utilization", "0.90",
-           "--max-model-len", str(MAX_MODEL_LEN), "--enable-prefix-caching"]
+           "--max-model-len", str(MAX_MODEL_LEN)]
+    cmd += ["--enable-prefix-caching"] if ARMS[arm]["cache"] else ["--no-enable-prefix-caching"]
     kv_bytes = kv_bytes_for(arm)
     if kv_bytes:
         cmd += ["--kv-cache-memory-bytes", str(kv_bytes)]
@@ -496,6 +501,11 @@ def run_paired():
             if not any(e["arm"] == arm and e["discarded"] for e in load_pools()):
                 discard_first_launch(arm)
             run_cell(arm, concurrency)
+        if concurrency in NOCACHE_AT:
+            for arm in NOCACHE_PAIR:
+                if not any(e["arm"] == arm and e["discarded"] for e in load_pools()):
+                    discard_first_launch(arm)
+                run_cell(arm, concurrency)
         done.append(concurrency)
         (RESULTS_DIR / "CELLS_DONE.txt").write_text(
             "\n".join(str(c) for c in done) + "\n")
@@ -530,7 +540,7 @@ def run_ladder():
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("arms", nargs="*", default=[], choices=ARM_ORDER + [])
+    ap.add_argument("arms", nargs="*", default=[], choices=ARM_ORDER + NOCACHE_PAIR + [])
     ap.add_argument("--probe", action="store_true")
     ap.add_argument("--paired", action="store_true")
     ap.add_argument("--ladder", action="store_true")

@@ -63,6 +63,32 @@ Derived quantities:
    concurrency 189; the graph term is positive at both. This is the specific
    claim that the batch scaling reported in `ctx_tax_mechanism` belongs mostly
    to the pool term.
+### A fourth term found after this was first written
+
+Re-reading the `ctx_tax_mechanism` counters against #53670 showed the two arms
+do not share a prefix-cache hit rate: at ctx 400 the spec arm hits 83.81 % where
+the baseline hits 96.70 %, a constant deficit of ~512–1 024 tokens that does not
+grow with context. The cause is the EAGLE-family last-block drop, which is
+active for `method='mtp'` and which `kv_cache_coordinator` applies to every KV
+group on a layout without `is_eagle_group`.
+
+That term lands inside P3. Only `dsd_k0_low` carries a `speculative_config`, so
+only it takes the drop; `base_piece_low` keeps a full hit rate. Left alone, the
+`dsd_k0_low` − `base_piece_low` distance would bundle **three** things: the sync
+forward, spec-path bookkeeping, and prefix-cache recompute — and attributing a
+non-zero result to any one of them would be guesswork of exactly the kind this
+study exists to avoid.
+
+So the design gains a control pair, `base_piece_low_nocache` and
+`dsd_k0_low_nocache`, identical to their cached counterparts but served with
+`--no-enable-prefix-caching`. With no cache there is no block to drop, so their
+distance is the forward plus bookkeeping alone, and
+
+    cache term = (dsd_k0_low − base_piece_low) − (dsd_k0_low_nocache − base_piece_low_nocache)
+
+isolates the recompute. The pair runs at the high-concurrency rung only, where
+the total term is large enough for the subtraction to resolve.
+
 3. **Reconstruction, and the sync forward.** `base_piece_low` ≈ `dsd_k0_low`.
    A no-spec server with the drafter's graph mode and the drafter's pool has no
    drafter and therefore runs no sync forward, so whatever separates it from the

@@ -15,6 +15,7 @@ RESULTS_DIR = Path(os.environ.get("RESULTS_DIR", "/root/results"))
 MATERIAL_FRAC = float(os.environ.get("MATERIAL_FRAC", "0.10"))
 BASE = "base_full_high"
 ARMS = ["base_full_high", "base_piece_high", "base_full_low", "base_piece_low", "dsd_k0_low"]
+NOCACHE_PAIR = ["base_piece_low_nocache", "dsd_k0_low_nocache"]
 TERMS = {
     "graph": "base_piece_high",
     "pool": "base_full_low",
@@ -119,6 +120,13 @@ def report(conc):
     residual_spec = cells["dsd_k0_low"]["mean"] - cells["base_piece_low"]["mean"]
     sem_spec = math.hypot(cells["dsd_k0_low"]["sem"], cells["base_piece_low"]["sem"])
 
+    nc = {a: cell(a, conc) for a in NOCACHE_PAIR}
+    cache_term = None
+    if all(c and c["n"] for c in nc.values()):
+        forward_only = nc["dsd_k0_low_nocache"]["mean"] - nc["base_piece_low_nocache"]["mean"]
+        cache_term = residual_spec - forward_only
+        print(f"{'':>16} | nocache pair: forward+bookkeeping {forward_only:+.3f} ms")
+
     print("  " + "-" * 84)
     for name, key in (("graph term", "graph"), ("pool term", "pool"), ("total", "total")):
         print(f"  {name:<12} {terms[key]:>+8.3f} ms  ({100*terms[key]/base['mean']:>+6.2f}%)")
@@ -129,7 +137,9 @@ def report(conc):
           f"material {floor:.3f}) -> P1 {p1}")
     print(f"  spec residual{residual_spec:>+8.3f} ms  (2*sem {2*sem_spec:.3f}, "
           f"material {floor:.3f}) -> P3 {p3}")
-    return {"concurrency": conc,
+    if cache_term is not None:
+        print(f"  cache term   {cache_term:>+8.3f} ms  (P3 residual minus the nocache pair)")
+    return {"concurrency": conc, "cache_term_ms": cache_term,
             "cells": {a: cells[a] for a in ARMS},
             "terms_ms": terms,
             "additivity_residual_ms": residual_add, "additivity_2sem": 2 * sem_add,
