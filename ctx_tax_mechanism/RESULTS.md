@@ -61,11 +61,50 @@ spec_decode_num_draft_tokens_delta = 0.0
 
 Runtime K=0 is honoured on V1 (`gpu_model_runner.py` threads
 `scheduler_output.num_spec_tokens_to_schedule` into `propose()`), so this is not
-the MRV2 bug of #51510. Workload is identical between arms (generation 4800,
-prompt 23808, prefix-cache hits 23040 per run at the anchor cell), preemptions
-are 0 in both, and the per-step token census is nearly identical (816 vs 818
-steps, both dominated by the decode-only bucket). The extra time is per step,
-not extra steps.
+the MRV2 bug of #51510. Preemptions are 0 in both arms and the per-step token
+census is nearly identical (816 vs 818 steps, both dominated by the decode-only
+bucket), so the extra time is per step, not extra steps.
+
+The *request* workload is identical between arms. Summed over the three
+measured runs at the anchor cell (ctx 400, c 2), generation tokens are 4 800,
+prompt tokens 23 826 and prefix-cache **queries** 23 826 in both. **Prefix-cache
+hits are not**, and an earlier version of this section listed the no-spec hit
+figure as though both arms shared it:
+
+| anchor cell, 3 measured runs | `no_spec` | `dsd_k0` |
+|---|---:|---:|
+| prefix-cache queries | 23 826 | 23 826 |
+| prefix-cache hits | 23 040 | **19 968** |
+| hit rate | 96.70 % | **83.81 %** |
+
+The spec arm recomputes 1 024 more prompt tokens per run at this cell. Across
+the grid the deficit is a small constant at low concurrency and does not grow
+with context — 1 024 tokens at ctx 400, 512 at ctx 16 000 and 512 again at
+ctx 38 000 — so its share falls as the prompt grows: −12.89 pp of hit rate at
+ctx 400 against −0.09 pp at ctx 38 000.
+
+That is the signature of a fixed alignment-unit drop on the cache-hit path, and
+the path is active here by construction. `SpeculativeConfig.use_eagle()` returns
+true for `method in ("eagle", "eagle3", "mtp", "dflash", "dspark")` and this arm
+runs as `method='mtp'`; `kv_cache_coordinator.py` then flags every KV group for
+the drop when no group carries `is_eagle_group` ("Conservatively fall back to
+flag all groups when no group is flagged"), and passes
+`drop_eagle_block=..., alignment_tokens=self.block_size` into
+`find_longest_cache_hit`. This is the mechanism reported in #53670 on a Qwen3.8
+GDN/Mamba layout, reproducing here on Gemma-4 hybrid attention.
+
+Two limits on that reading. The ctx 400 / c 189 cell has a much larger deficit
+(24 800 tokens) that is not a clean multiple of the unit, and both arms are
+already thrashing the cache there (77.72 % against 64.49 %), so that cell is not
+attributable to this mechanism. And the observed 512-token unit is what the
+counters show; the engine's block size is not printed in these logs, so the unit
+is not confirmed to be it.
+
+The time cost of this on this stack appears small: the tax stayed flat across
+context (§1) while this term's share shrinks by two orders of magnitude over the
+same range, which it could not do if the recompute dominated. It is a real
+difference between the arms that this section previously asserted away, not a
+replacement for the graph-mode account.
 
 What differs is the CUDA graph mode. vLLM says so itself:
 
