@@ -237,8 +237,29 @@ Kept here so the record is in one place rather than scattered across threads.
 | 2026-08-24 | Qwen3-4B cell misread, self-reported |
 | 2026-08-28 | §3 asserted the arms shared a prefix-cache hit rate; they do not |
 | 2026-08-31 | C and D had been conflated in internal discussion; D's concede was being read as a verdict on C |
+| 2026-09-01 | RFC #48627 §2 and its withdrawn ratios carried no supersession note in the body; added one |
+| 2026-09-01 | #49986 still asserted the arms shared a prefix-cache hit rate; correction of record posted |
+| 2026-09-01 | The MagicDec quotation in RFC #48627 and PR #48944 was attributed to arXiv:2408.11049, which does not contain it — it is from the MagicDec-part1 blog — and an em-dash clause had been dropped without marking the elision. Both bodies corrected |
 
 ---
+
+## Prior art, verified at source
+
+Checked against arXiv metadata and, where the claim is not in the abstract, the paper or blog text
+itself. Listed because the argument that K needs a policy rather than a wider table rests on
+several groups independently proposing *different* signals for the same decision.
+
+| Work | ID | What it proposes | Verified |
+|---|---|---|---|
+| MagicDec | blog *MagicDec-part1*; paper [2408.11049](https://arxiv.org/abs/2408.11049) | speculation amount as a function of sequence length | Quote verbatim in the blog under *Adaptive Sequoia trees*. **Not in the paper** — the paper argues the same thing as a critical-sequence-length threshold plus an analytic model for the optimal drafting strategy |
+| LibraSpec | [2608.08721](https://arxiv.org/abs/2608.08721) (2026-08-09) | speculative length by marginal gain | Title and framing confirmed: *Dynamic Diffusion-Based Speculative Decoding via Marginal-Gain-Driven Optimization* |
+| EcoSpec | [2607.12696](https://arxiv.org/abs/2607.12696) (2026-07-14) | draft selection by marginal expert activation cost | Abstract confirms the mechanism and **"up to 1.62× speedup"** on DeepSeek-V3.1 / Qwen3-235B-A22B / GPT-OSS-120B. Per-model figures circulating elsewhere (1.50×, 1.47×) are **not** in the abstract |
+| SparseSpec-L | [2607.27735](https://arxiv.org/abs/2607.27735) (2026-07-30) | speculation length by an online entropy-based controller | Abstract confirms *"An online entropy-based controller further selects the speculation length according to expected step-wise efficiency"* and that *"extending the speculation horizon can reduce rather than improve speedup when the marginal acceptance probability falls below the relative drafting cost."* The speedup figure is **elided in the abstract**; a "2.79×" figure circulating elsewhere could not be verified |
+| Hybrid Verified Decoding | [2606.01019](https://arxiv.org/abs/2606.01019) (2026-05-31) | verification allocation learned from payoff | Title confirmed: *Learning to Allocate Verification in Speculative Decoding* |
+
+Also in vLLM itself, not literature: #54082 proposes gating K between 0 and K on token entropy, and
+the shipped schedule keys on batch size. So the signals actually being proposed for one decision are
+batch, context, entropy, marginal gain, expert cost and learned payoff.
 
 ## What the ledger licenses
 
