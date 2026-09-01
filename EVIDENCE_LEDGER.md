@@ -87,7 +87,7 @@ pool-limited, but that reading is unconfirmed until the 2×2 runs.
 
 Source: Table 1 of the [PR #48944 decomposition comment](https://github.com/vllm-project/vllm/pull/48944#issuecomment-5091663057)
 (position-balanced 2 trials, autotune cache wiped per launch, cold-start burn,
-3 warmup discarded + 3 measured per cell, c = 256, per-arm stdev 0.19–1.72 %).
+3 warmup discarded + 3 measured per cell, c = 256, per-arm stdev 0.01–1.72 % across arms).
 
 | ctx | `no_spec` (K=0) | static-K3 | K3/K0 |
 |---:|---:|---:|:---:|
