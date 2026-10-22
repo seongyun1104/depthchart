@@ -6,6 +6,18 @@ Single-GPU experimentation lab for the **(B, ctx) context-length-aware K control
 
 > Speculative decoding's optimal draft depth K is a function of both batch size B and decode-time context length ctx. The batch axis is already dynamic in production (vLLM 0.24 DSD, SGLang adaptive). The context-length axis is unclaimed in both frameworks and the literature. Long-context decode amortizes KV-read across K speculatively drafted tokens, keeping K > 0 optimal well past the batch-only crossover point where fixed K collapses. This lab measures the (B, ctx) surface, replicates it across two engines, and produces the controller that turns the surface into a runtime policy.
 
+> **Status, 2026-10-22.** The paragraph above is the lab's hypothesis, not a
+> result. A re-analysis of the 2026-07-27 vLLM campaign accounted for the
+> existing `static K=3` control, which the earlier verdict did not. **This
+> campaign does not establish a performance advantage over static K=3.
+> Observed differences
+> were −11.64%, +1.94%, +1.42%, and −0.73%.** That is a failure to establish an
+> advantage, not a demonstration that the axis has no effect. The hypothesis —
+> that the favourable K can differ with context at the same batch size —
+> remains open and has not been tested against a strong baseline. See
+> [`EVIDENCE_LEDGER.md` §C](EVIDENCE_LEDGER.md). The upstream vLLM PR #48944 is
+> not being pushed for merge as a performance feature.
+
 **Two parallel tracks, one harness.** The infra (`scheduler/vllm_runner.py`,
 `speculative/adapter.py`, `benchmarks/runner.py`) is shared. The tracks
 differ only in the model / drafter / GPU-budget triple:

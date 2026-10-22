@@ -17,7 +17,7 @@ this repository and in the vLLM threads, pinned to the commits that hold them.
 |---|---|---|---|
 | **A** | Enabling DSD costs a baseline tax before it drafts anything | ctx 400–38 000, c 2–189 | **Established.** ctx-flat, batch-scaling. Two independent external reproductions |
 | **B** | Speculation's own benefit rises with context | ctx 400–4 000, c 256 | **Established.** K3/K0 crosses 1.0 near ctx 1 900 |
-| **C** | A (batch × ctx) schedule beats a batch-only schedule | ctx 400–4 000, c 256 | **Pre-registered SUCCESS.** 1.29× / 1.30× / 1.36× at ctx 900 / 1 900 / 4 000 |
+| **C** | A (batch × ctx) schedule beats a batch-only schedule | ctx 400–4 000, c 256 | **Met its pre-registered throughput criterion against `A′`; a performance advantage from the context axis is not established by this campaign.** 1.29× / 1.30× / 1.36× against `A′`, but −11.64 % / +1.94 % / +1.42 % / −0.73 % against a `static K=3` control in the same run. See §C |
 | **D** | K\* shifts enough with context that mis-picking K is expensive | ctx 4 000 & 32 768, b 11 | **WEAK → CONCEDE.** Direction reproduced twice, magnitude +3.60 % (1.12σ) below the 2σ bar |
 
 **C and D are not the same claim, and conflating them is the error this file
@@ -26,6 +26,13 @@ and was measured under batch pressure (c = 256). D asks how sharp the K optimum
 is at a fixed low batch (b = 11), and was measured without batch pressure. C
 passed its pre-registered bar; D did not pass its own. Neither result
 invalidates the other.
+
+**[Correction, 2026-10-22] C's pre-registered comparator was weak, and the
+stronger control was in the same run.** The 2026-07-27 campaign also measured
+`static K=3` (`[[1,512,3]]`), and `C′` does not beat it. C therefore records a
+pre-registered throughput criterion met against `A′`, and **a performance
+advantage from adding the context axis that is not established by this
+campaign**. The four-arm table and the re-aggregation method are in §C.
 
 ---
 
@@ -121,48 +128,91 @@ the 6-cell 2-D schedule. This is the contrast the pre-registration named as
 primary, with rules frozen 2026-07-27 before measurement (SUCCESS = ≥3/4 cells at
 1.15×, one ≥1.30×).
 
-| ctx | A′ (batch-only) | C′ (2-D) | **C′/A′** |
-|---:|---:|---:|:---:|
-| 400 | 1 875.6 | 1 890.7 | 1.01× |
-| 900 | 1 453.5 | 1 874.6 | **1.29×** |
-| 1 900 | 1 416.6 | 1 848.2 | **1.30×** |
-| 4 000 | 1 232.8 | 1 680.4 | **1.36×** |
+**[Correction, 2026-10-22]** This section previously showed only the `C′` and
+`A′` columns. The same campaign measured two further arms; all four are below.
+The left column is the **configured** `--prefix-repetition-prefix-len`. Observed
+per-request input lengths were 496 / 996 / 1 996 / 4 096, output length 100.
 
-**Verdict: pre-registered SUCCESS.** Three of four cells clear 1.15×, two clear
-1.30×, TPOT direction is consistent (C′ ≈ 90 ms against A′ ≈ 160 ms in the K=3
-tier), stdev is under 2 % in every cell, and the T1/T2 order-bias delta averages
-0.7 % against a 29–36 % signal.
+| configured prefix | `no_spec` | `static K=3` | `A′` (batch-only) | `C′` (2-D) | **C′/A′** | **C′ vs static** |
+|---:|---:|---:|---:|---:|:---:|:---:|
+| 400 | 2 711.7 | **2 139.8** | 1 875.6 | 1 890.7 | 1.01× | **−11.64 %** |
+| 900 | 1 987.1 | 1 838.9 | 1 453.5 | 1 874.6 | **1.29×** | +1.94 % |
+| 1 900 | 1 815.2 | 1 822.4 | 1 416.6 | 1 848.2 | **1.30×** | +1.42 % |
+| 4 000 | 1 535.9 | **1 692.8** | 1 232.8 | 1 680.4 | **1.36×** | **−0.73 %** |
 
-The ctx = 400 tie is explained rather than excused: at that context the C′ lookup
-selects `[129,512,1,768,0]` = K=0, identical to A′'s `[129,512,0]`. The two
-schedules choose the same K, so neither can beat the other. Acceptance confirms
-the tiers fire — 18–20 % at ctx 400 (K=0 tier) against 44–47 % at ctx 900–4 000
-(K=3 tier).
+Output tokens/s, mean of the six measurement runs per cell (2 trials × 3 runs),
+recomputed from `pr48944_replication/raw/{trial1,trial2}/phase4/<arm>/ctx_<N>/measure_*.json`.
+At the 400 cell `static K=3` is 13.18 % faster than `C′` — a different number
+from `C′` being 11.64 % below `static K=3`.
 
-**The argument-free version.** Reading the same table against no-speculation,
-which carries no drafter and no DSD tax at all:
+**Verdict, restated.** Two things the earlier text ran together:
 
-| ctx | C′ / `no_spec` |
-|---:|:---:|
-| 400 | 0.70× |
-| 900 | 0.94× |
-| **1 900** | **1.02×** (crossover) |
-| **4 000** | **1.09×** |
+1. **The pre-registered throughput criterion was met.** Against `A′`, three of
+   four cells clear 1.15× and two clear 1.30×, under a rule frozen before
+   measurement. That rule was a throughput-ratio rule only — it contained no
+   dispersion term — so the incorrect dispersion figures discussed below did not
+   enter the determination, though the verdict paragraph in the PR comment cited
+   them as support. The criterion being met is unchanged and not withdrawn.
+2. **A performance advantage from adding the context axis is not established by
+   this campaign.** Against `static K=3` — a one-line schedule with no context
+   axis — `C′` is lower at two cells and higher at two. The largest observed
+   difference favours `static K=3`. Meeting a criterion set against `A′` does
+   not carry a claim against `static K=3`.
 
-Above ctx ≈ 2k the 2-D schedule pays the full tax measured in A and still wins in
-absolute throughput.
+How to read `A′`: in the 129–512 batch tier `A′` selects K=0, and that tier
+covers the run's nominal concurrency — but `A′` still drafts, because
+`num_prompts=256` with `max_concurrency=256` is a finite batch whose scheduled
+size passes through the lower tiers on ramp-up and drain. Draft tokens summed
+over the six runs: `A′` 1 243 / 1 720 / 5 748 / 10 183, `C′` 1 234 / 190 858 /
+190 984 / 179 854, `static K=3` 197 043 / 202 695 / 208 644 / 190 812. This is
+not a fixed-batch K=0-against-K=3 comparison and should not be described as one.
+
+Dispersion, recomputed from the raw runs as the coefficient of variation over
+the six measurement runs per cell (sample standard deviation, n−1): `C′`
+1.19 / 1.90 / 1.70 / 1.74 %, `static K=3` 1.31 / 1.16 / 1.58 / 1.53 %, `A′`
+1.18 / 1.10 / 1.02 / 0.53 %, `no_spec` 0.94 / 0.41 / 0.36 / 0.52 %.
+**These are reported as observed spread and are not an equivalence test.** They
+supersede the "stdev under 2 % in every cell" statement that stood here, which
+fails for `C′` trial 1 at ctx 900 (2.02 %) under the per-trial definition, and
+they supersede the dispersion figures in the PR comment, which reproduce under
+neither definition. The "29–36 % signal against 0.7 % order bias" multiplier is
+withdrawn: it was computed wrongly, and comparing the observed gain with an
+order-associated difference does not establish statistical significance or
+robustness.
+
+**[Corrected, 2026-10-22.]** At prefix 400, the schedules prescribe the same K
+in the high-batch tier and produced similar aggregate throughput. Per-step K
+traces were not recorded. The earlier text here asserted that every step chose
+the same K and read per-tier acceptance rates as confirmation of which tier
+fired; neither is supported by what was recorded, and both conflict with the
+ramp/drain behaviour described above.
+
+**Against no-speculation.** `C′` reaches 0.70× / 0.94× / 1.02× / 1.09× of
+`no_spec`. **[Correction, 2026-10-22]** This was previously headed "the
+argument-free version" and read as independent support for the context axis. It
+is not: `static K=3` reaches about 0.79× / 0.93× / 1.00× / 1.10× at the same
+points, crossing in the same place and exceeding `C′` at 4 000. What the columns
+support is the observation that **speculation's standing relative to
+no-speculation changes with prefix length in this setup**. That is not
+attributed to the context axis here, and it is not established as a general
+property of K=3 either.
 
 **What C does not show.** It is one model pair, one hardware configuration, one
 concurrency (c = 256), and four context points. The eager control intended to
 isolate the cudagraph contribution was attempted and discarded (ctx 4 000
 exceeded the 4 096 budget; eager ctx 1 900 gave K3/K0 = 0.94×, the wrong
-direction for a single-cause cudagraph hypothesis). The 2-D form itself is
-zero-cost when unused (2 627.2 against 2 642.3, +0.6 %, within noise).
+direction for a single-cause cudagraph hypothesis). **[Correction, 2026-10-22]** A "+0.6 %, therefore zero-cost when unused"
+claim (2 627.2 against 2 642.3) stood here and is withdrawn. A single pair of
+numbers inside run-to-run spread does not establish a zero-cost property, and
+the cost of the unused 2-D form has not been measured.
 
-**Known anti-pattern, self-reported.** An earlier spec-bench aggregate showed
-−4.0 % for a 2-D schedule. The cause was using the ctx axis to *lower* K on the
-short-context majority. The axis is intended to *raise* K for long-context
-buckets; used in the other direction it loses.
+**Earlier negative result, self-reported.** An earlier spec-bench aggregate
+showed −4.0 % for a 2-D schedule. **[Correction, 2026-10-22]** The sentence
+"the cause was using the ctx axis to *lower* K on the short-context majority"
+is withdrawn as a causal attribution. That schedule did lower K on the
+short-context majority, but the regression was never decomposed, so its cause is
+not established. It is recorded as an observed regression for that
+configuration.
 
 ---
 
@@ -267,22 +317,41 @@ batch, context, entropy, marginal gain, expert cost and learned payoff.
   independent external reproductions. Its weakness is that the batch scaling is
   not yet attributed to a term, and the run that would attribute it has not
   happened.
-- **C passed its pre-registered bar** and should not be described as unproven. Its
-  weakness is breadth: one model pair, one concurrency, four context points.
-- **B and C together say the same thing from two sides** — speculation's economics
-  move with context, and a schedule that cannot see context therefore mis-picks K.
-  Both were measured under batch pressure (c = 256).
-- **D says the optimum is not sharp at low batch.** Read next to A, which says the
-  tax is negligible at low batch and severe at high batch, the consistent reading
-  is that **the context axis pays where batch pressure is high**, and that neither
-  axis is sufficient alone. That reading is consistent with everything above but
-  has not itself been tested as a hypothesis.
+- **[Replaced, 2026-10-22] C met its pre-registered throughput criterion
+  against `A′`.** This previously read that C "should not be described as
+  unproven". This campaign does not establish a performance advantage over
+  static K=3. Observed differences were −11.64 %, +1.94 %, +1.42 % and
+  −0.73 %. The criterion being met against `A′` stands; it is not a result
+  about `static K=3`. Breadth is a further limit: one model pair, one
+  concurrency, four context points.
+- **[Replaced, 2026-10-22] B and C do not jointly show that a context-blind
+  schedule mis-picks K.** This previously concluded that they did. B shows
+  speculation's economics move with context in this setup. C does not add that a
+  schedule which cannot see context therefore chooses K badly, because an
+  advantage over the context-blind `static K=3` was not established. What
+  remains untested is whether a condition exists where a simple schedule does
+  choose badly.
+- **[Replaced, 2026-10-22] "The context axis pays where batch pressure is high"
+  is withdrawn.** It was offered as the consistent reading of A, C and D
+  together, and it was never tested as a hypothesis. The one campaign run under
+  batch pressure (c = 256) did not establish it.
 
 ## What it does not license
 
 - Any claim that the context axis delivers a fixed multiplier across workloads.
-  It does not; at ctx 400 it correctly does nothing.
+  **[Amended 2026-10-22]** This previously added "at ctx 400 it correctly does
+  nothing". At prefix 400 the 2-D schedule prescribes K=0 in the high-batch tier
+  and measured 11.64 % below `static K=3`, so that choice is not shown to be the
+  correct one.
 - Any use of the 1.17× / 1.25× / 1.38× / 1.36× figures.
+- **[2026-10-22]** Any claim that the context axis outperforms a static or a
+  well-tuned batch-only schedule. The 2026-07-27 campaign does not establish it.
+  Nor does it establish the converse: `C′` was higher than `static K=3` at two
+  of four points, by +1.94 % and +1.42 %.
+- **[2026-10-22]** Any use of the dispersion figures published in PR #48944
+  comment 5091663057, or of the "29–36 % signal" multiplier built on them.
+- **[2026-10-22]** Any "zero-cost when unused" or "resource-free" statement
+  about the context axis.
 - Any claim that D's concede is reversed. It is not; only its stated cause is in
   question.
 - Any citation of the survey literature compiled on 2026-09-01 for this

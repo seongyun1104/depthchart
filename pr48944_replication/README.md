@@ -2,6 +2,43 @@
 
 Full repro material for the measurement decomposition in [vLLM PR #48944 comment #5091663057](https://github.com/vllm-project/vllm/pull/48944#issuecomment-5091663057).
 
+## Results summary (added 2026-10-22)
+
+Output tokens/s, mean of the six measurement runs per cell (2 trials × 3 runs),
+recomputed from `raw/{trial1,trial2}/phase4/<arm>/ctx_<N>/measure_*.json`.
+The left column is the **configured** `--prefix-repetition-prefix-len`; observed
+per-request input lengths were 496 / 996 / 1 996 / 4 096 with output length 100.
+
+| configured prefix | `no_spec` | `static_k3` | `A_prime` | `C_prime` | `C′/A′` | `C′` vs static |
+|---:|---:|---:|---:|---:|:---:|:---:|
+| 400 | 2 711.7 | **2 139.8** | 1 875.6 | 1 890.7 | 1.01× | **−11.64 %** |
+| 900 | 1 987.1 | 1 838.9 | 1 453.5 | 1 874.6 | **1.29×** | +1.94 % |
+| 1 900 | 1 815.2 | 1 822.4 | 1 416.6 | 1 848.2 | **1.30×** | +1.42 % |
+| 4 000 | 1 535.9 | **1 692.8** | 1 232.8 | 1 680.4 | **1.36×** | **−0.73 %** |
+
+**Read the `static_k3` column before citing the `C′/A′` column.** The
+pre-registered contrast was `C′` against `A′` and it met its throughput
+criterion. But `static_k3` — a one-line schedule with no context axis — is
+higher at 400 and 4 000 and lower at 900 and 1 900, and the largest observed
+difference favours `static_k3`. **A performance advantage from adding the
+context axis is not established by this package.**
+
+Draft tokens summed over the six runs, which is why `A_prime` should not be
+called a non-speculating arm: `A_prime` 1 243 / 1 720 / 5 748 / 10 183,
+`C_prime` 1 234 / 190 858 / 190 984 / 179 854, `static_k3` 197 043 / 202 695 /
+208 644 / 190 812. `A_prime` selects K=0 in the 129–512 tier, but the run is a
+finite 256-request batch whose scheduled size passes through the lower,
+drafting tiers on ramp-up and drain.
+
+Coefficient of variation over the six runs per cell (sample standard deviation,
+n−1), reported as observed spread and **not** as an equivalence test: `C_prime`
+1.19 / 1.90 / 1.70 / 1.74 %, `static_k3` 1.31 / 1.16 / 1.58 / 1.53 %,
+`A_prime` 1.18 / 1.10 / 1.02 / 0.53 %, `no_spec` 0.94 / 0.41 / 0.36 / 0.52 %.
+These supersede the dispersion figures quoted in PR comment 5091663057, which
+reproduce neither per-trial nor pooled.
+
+Interpretation limits are recorded in [`../EVIDENCE_LEDGER.md` §C](../EVIDENCE_LEDGER.md).
+
 ## Contents
 
 - `master_bench.py` — orchestrator: launches vLLM server per arm, wipes autotune cache, runs cold-start burn + `prefix_repetition` sweep with 3 warmup + 3 measure runs, snapshots Prometheus deltas per cell.
