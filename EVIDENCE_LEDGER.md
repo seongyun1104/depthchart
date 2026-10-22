@@ -17,22 +17,16 @@ this repository and in the vLLM threads, pinned to the commits that hold them.
 |---|---|---|---|
 | **A** | Enabling DSD costs a baseline tax before it drafts anything | ctx 400–38 000, c 2–189 | **Established.** ctx-flat, batch-scaling. Two independent external reproductions |
 | **B** | Speculation's own benefit rises with context | ctx 400–4 000, c 256 | **Established.** K3/K0 crosses 1.0 near ctx 1 900 |
-| **C** | A (batch × ctx) schedule beats a batch-only schedule | ctx 400–4 000, c 256 | **Met its pre-registered throughput criterion against `A′`; a performance advantage from the context axis is not established by this campaign.** 1.29× / 1.30× / 1.36× against `A′`, but −11.64 % / +1.94 % / +1.42 % / −0.73 % against a `static K=3` control in the same run. See §C |
+| **C** | A (batch × ctx) schedule beats a batch-only schedule | ctx 400–4 000, c 256 | **Met its pre-registered criterion against `A′` (1.29× / 1.30× / 1.36×); no advantage established over `static K=3`.** See §C |
 | **D** | K\* shifts enough with context that mis-picking K is expensive | ctx 4 000 & 32 768, b 11 | **WEAK → CONCEDE.** Direction reproduced twice, magnitude +3.60 % (1.12σ) below the 2σ bar |
 
 **C and D are not the same claim, and conflating them is the error this file
 fixes.** C asks whether routing K by context beats routing it by batch alone,
 and was measured under batch pressure (c = 256). D asks how sharp the K optimum
 is at a fixed low batch (b = 11), and was measured without batch pressure. C
-passed its pre-registered bar; D did not pass its own. Neither result
-invalidates the other.
-
-**[Correction, 2026-10-22] C's pre-registered comparator was weak, and the
-stronger control was in the same run.** The 2026-07-27 campaign also measured
-`static K=3` (`[[1,512,3]]`), and `C′` does not beat it. C therefore records a
-pre-registered throughput criterion met against `A′`, and **a performance
-advantage from adding the context axis that is not established by this
-campaign**. The four-arm table and the re-aggregation method are in §C.
+passed its pre-registered bar against `A′`; D did not pass its own. Neither
+result invalidates the other. C's comparator was weak, and the stronger control
+measured in the same run is covered in §C.
 
 ---
 
