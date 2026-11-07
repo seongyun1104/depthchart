@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo/depthchart-logo.png" alt="DepthChart" width="480"></p>
+
 # DepthChart
 
 *A (B, ctx) scheduling table for speculative decoding — the K controller for long-context decode.*
