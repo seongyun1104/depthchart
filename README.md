@@ -1,4 +1,4 @@
-<p align="center"><img src="assets/logo/depthchart-logo.png" alt="DepthChart" width="480"></p>
+<p align="center"><img src="assets/logo/depthchart-logo.png" alt="DepthChart" width="720"></p>
 
 # DepthChart
 
