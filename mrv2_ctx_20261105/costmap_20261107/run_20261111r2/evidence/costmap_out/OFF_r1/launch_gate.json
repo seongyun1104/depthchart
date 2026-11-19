@@ -1,0 +1,8 @@
+{
+ "pass": true,
+ "reasons": [],
+ "valid_share": 1.0,
+ "cells_run": 10,
+ "cells_infeasible": 0,
+ "gpu_use_basis": "compute_apps"
+}

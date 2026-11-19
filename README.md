@@ -4,6 +4,20 @@
 
 *A (B, ctx) scheduling table for speculative decoding — the K controller for long-context decode.*
 
+> **Latest result (2026-11-19).** At the same K, the server step cost depended on which FP8 GEMM path the step's
+> input shape took. On Gemma-4 31B FP8, MRv2 and one H100 NVL, K1 at batch 16 runs every target step at M = 32. The
+> (16, 32] branch of vllm-project/vllm#66852 lowered that step by 7.6 % (1k context) and 6.5 % (4k), while 8 control
+> cells stayed within ±0.3 %. This is a reproduction credited to #66852, not a new kernel.
+>
+> Read in this order:
+> 1. **[K cost map](mrv2_ctx_20261105/public_20261119/COST_MAP.md)**: measured step cost per (batch, context) × K,
+>    with projected cells marked as projections.
+> 2. **[Report](mrv2_ctx_20261105/public_20261119/REPORT.md)**: the cost map, a negative result for four FP8 GEMM
+>    candidates at the 64 | 65 step, and the server comparison.
+> 3. **[Raw data and reproduce commands](mrv2_ctx_20261105/public_20261119/REPORT.md#raw-data-and-how-to-reproduce)**.
+>
+> This does not answer the lab's main question (below). The context axis is still unproven; see the ledger.
+
 Single-GPU experimentation lab for the **(B, ctx) context-length-aware K controller**:
 
 > Speculative decoding's optimal draft depth K is a function of both batch size B and decode-time context length ctx. The batch axis is already dynamic in production (vLLM 0.24 DSD, SGLang adaptive). The context-length axis is unclaimed in both frameworks and the literature. Long-context decode amortizes KV-read across K speculatively drafted tokens, keeping K > 0 optimal well past the batch-only crossover point where fixed K collapses. This lab measures the (B, ctx) surface, replicates it across two engines, and produces the controller that turns the surface into a runtime policy.

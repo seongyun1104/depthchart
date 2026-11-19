@@ -1,0 +1,145 @@
+{"case": "k5376_n16384_m16_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": -6130.96142578125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m16_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 9132.828125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m17_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": -8122.9951171875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m17_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -1492.80712890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m32_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": 8598.4951171875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m32_b1", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": -11722.15625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m33_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": 15172.31640625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m33_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 16789.189453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m64_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": 18548.248046875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m64_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -4463.3603515625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m65_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": -13032.52734375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m65_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -19542.04296875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m96_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": 10264.251953125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m96_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -5361.72314453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m128_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": -19165.521484375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m128_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 1890.488525390625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m129_b0", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": -4124.1298828125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n16384_m129_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -5208.3701171875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m16_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": -12206.6279296875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m16_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -4599.6865234375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m17_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": 8533.5400390625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m17_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -13285.03515625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m32_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": -20047.0078125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m32_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -1010.86181640625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m33_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": -3074.146484375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m33_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -22700.984375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m64_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": 9813.216796875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m64_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 10117.5849609375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m65_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": 3377.234375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m65_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -4930.673828125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m96_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": -18650.916015625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m96_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -11906.07421875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m128_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": 10666.95703125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m128_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -10362.8349609375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m129_b0", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 12762.880859375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n20480_m129_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -8480.044921875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m16_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": 6218.52490234375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m16_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 3767.3212890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m17_b0", "pass": true, "max_abs_vs_baseline": 0.25, "in_sum": -2662.270751953125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m17_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 8329.0966796875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m32_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": 3897.1142578125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m32_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -1549.1480712890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m33_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": -5407.64453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m33_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 10162.30078125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m64_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": 2580.22021484375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m64_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 9901.5029296875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m65_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": -5549.56689453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m65_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -13461.1025390625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m96_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": 1.3339462280273438, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m96_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -2997.837890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m128_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": 260.5730895996094, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m128_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": 3646.14453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m129_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": -4924.298828125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k8192_n5376_m129_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": 2398.001953125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m16_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": 17306.3984375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m16_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": 3128.155517578125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m17_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": 8020.44140625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m17_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -3219.3818359375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m32_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": -11008.369140625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m32_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -2563.32373046875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m33_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": -3531.21142578125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m33_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 6302.7392578125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m64_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": -6549.9462890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m64_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -7292.890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m65_b0", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": -10973.8212890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m65_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -1866.1751708984375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m96_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": -11064.287109375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m96_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -6189.72998046875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m128_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": 3835.632568359375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m128_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": 8975.8076171875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m129_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": 285.03057861328125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k16384_n5376_m129_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -5044.203125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m16_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": -1610.9527587890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m16_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 15902.0107421875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m17_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": 30435.21484375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m17_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -13513.44921875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m32_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": -12543.818359375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m32_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 13512.033203125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m33_b0", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": 8179.38037109375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m33_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -23464.072265625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m64_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": -25534.564453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m64_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": 22547.392578125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m65_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": 1435.20654296875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m65_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 14856.3212890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m96_b0", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": 25931.345703125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m96_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": 27771.107421875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m128_b0", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": -23604.91015625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m128_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 17450.447265625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m129_b0", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -36075.3125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n43008_m129_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 2582.42138671875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m16_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": 2718.185302734375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m16_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -3788.3037109375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m17_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": -2921.75439453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m17_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -2306.641845703125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m32_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": -409.4093322753906, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m32_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -16177.7490234375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m33_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": 11494.5048828125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m33_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": 22040.859375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m64_b0", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": -4845.77587890625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m64_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": 555.4952392578125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m65_b0", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": -7934.41064453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m65_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -13177.96484375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m96_b0", "pass": true, "max_abs_vs_baseline": 2.0, "in_sum": -4164.73486328125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m96_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -414.186767578125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m128_b0", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": 2122.644775390625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m128_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": -9270.564453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m129_b0", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": -21354.921875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k21504_n5376_m129_b1", "pass": true, "max_abs_vs_baseline": 16.0, "in_sum": 15825.3623046875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m16_b0", "pass": true, "max_abs_vs_baseline": 0.0625, "in_sum": -2512.33203125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m16_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 1924.322509765625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m17_b0", "pass": true, "max_abs_vs_baseline": 0.03125, "in_sum": 1968.94189453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m17_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 3296.177734375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m32_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": 2147.68603515625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m32_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 607.382568359375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m33_b0", "pass": true, "max_abs_vs_baseline": 0.25, "in_sum": 3430.253173828125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m33_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 2164.515869140625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m64_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": -1842.6776123046875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m64_b1", "pass": true, "max_abs_vs_baseline": 4.0, "in_sum": 5855.88818359375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m65_b0", "pass": true, "max_abs_vs_baseline": 0.5, "in_sum": 4914.599609375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m65_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -1504.852294921875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m96_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": 2559.89453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m96_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -2132.18896484375, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m128_b0", "pass": true, "max_abs_vs_baseline": 0.125, "in_sum": -1352.14892578125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m128_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": -3668.076171875, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m129_b0", "pass": true, "max_abs_vs_baseline": 1.0, "in_sum": -4115.38916015625, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"case": "k5376_n2048_m129_b1", "pass": true, "max_abs_vs_baseline": 8.0, "in_sum": 6987.44189453125, "same_inputs_as_arm0": true, "bitwise_eq_arm0": true, "max_abs_vs_arm0": 0.0}
+{"record_real": "k5376_n16384_m65", "max_rel": 70.1746597290039, "max_abs": 1.8370819091796875}
+{"record_real": "k5376_n16384_m96", "max_rel": 334.13409423828125, "max_abs": 2.16741943359375}
+{"record_real": "k5376_n16384_m128", "max_rel": 202.6614990234375, "max_abs": 2.273162841796875}
+{"record_real": "k5376_n20480_m65", "max_rel": 69.13375854492188, "max_abs": 3.11163330078125}
+{"record_real": "k5376_n20480_m96", "max_rel": 102.73856353759766, "max_abs": 2.373992919921875}
+{"record_real": "k5376_n20480_m128", "max_rel": 150.59036254882812, "max_abs": 2.442657470703125}
+{"record_real": "k8192_n5376_m65", "max_rel": 116.69127655029297, "max_abs": 4.14697265625}
+{"record_real": "k8192_n5376_m96", "max_rel": 121.77943420410156, "max_abs": 3.023681640625}
+{"record_real": "k8192_n5376_m128", "max_rel": 158.27369689941406, "max_abs": 3.57861328125}
+{"record_real": "k16384_n5376_m65", "max_rel": 218.21212768554688, "max_abs": 5.8323974609375}
+{"record_real": "k16384_n5376_m96", "max_rel": 182.5707244873047, "max_abs": 5.8994140625}
+{"record_real": "k16384_n5376_m128", "max_rel": 247.11158752441406, "max_abs": 5.525360107421875}
+{"record_real": "k5376_n43008_m65", "max_rel": 144.48165893554688, "max_abs": 2.205047607421875}
+{"record_real": "k5376_n43008_m96", "max_rel": 110.02539825439453, "max_abs": 2.4832763671875}
+{"record_real": "k5376_n43008_m128", "max_rel": 238.7142791748047, "max_abs": 2.4954833984375}
+{"record_real": "k21504_n5376_m65", "max_rel": 368.9193420410156, "max_abs": 8.3951416015625}
+{"record_real": "k21504_n5376_m96", "max_rel": 462.4538269042969, "max_abs": 7.32965087890625}
+{"record_real": "k21504_n5376_m128", "max_rel": 164.1922149658203, "max_abs": 7.68402099609375}
+CORRECT_OK

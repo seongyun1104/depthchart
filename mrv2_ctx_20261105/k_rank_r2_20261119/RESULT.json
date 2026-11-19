@@ -1,0 +1,263 @@
+{
+ "rules": "RULES.md",
+ "metric": "delivered_ms_per_token",
+ "options": [
+  "Z",
+  "K1",
+  "K3",
+  "K5"
+ ],
+ "pair_flips": [],
+ "best": {
+  "1": {
+   "1024": {
+    "order": [
+     "K5",
+     "K3",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 14.6141,
+     "K1": 7.3502,
+     "K3": 3.9948,
+     "K5": 2.8731
+    },
+    "off_ms_per_token": 14.0661,
+    "best_vs_second": {
+     "verdict": "exceeds_aa",
+     "log_ratio": 0.3296
+    },
+    "resolved": true,
+    "best_per_launch": [
+     "K5",
+     "K5"
+    ]
+   },
+   "4096": {
+    "order": [
+     "K5",
+     "K3",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 15.3809,
+     "K1": 7.7691,
+     "K3": 4.301,
+     "K5": 3.1451
+    },
+    "off_ms_per_token": 14.7689,
+    "best_vs_second": {
+     "verdict": "exceeds_aa",
+     "log_ratio": 0.313
+    },
+    "resolved": true,
+    "best_per_launch": [
+     "K5",
+     "K5"
+    ]
+   },
+   "16384": {
+    "order": [
+     "K5",
+     "K3",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 18.297,
+     "K1": 9.3737,
+     "K3": 5.4063,
+     "K5": 4.0888
+    },
+    "off_ms_per_token": 17.3653,
+    "best_vs_second": {
+     "verdict": "exceeds_aa",
+     "log_ratio": 0.2793
+    },
+    "resolved": true,
+    "best_per_launch": [
+     "K5",
+     "K5"
+    ]
+   }
+  },
+  "8": {
+   "1024": {
+    "order": [
+     "K5",
+     "K3",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 2.2445,
+     "K1": 1.1343,
+     "K3": 0.7336,
+     "K5": 0.5206
+    },
+    "off_ms_per_token": 2.1519,
+    "best_vs_second": {
+     "verdict": "exceeds_aa",
+     "log_ratio": 0.3431
+    },
+    "resolved": true,
+    "best_per_launch": [
+     "K5",
+     "K5"
+    ]
+   },
+   "4096": {
+    "order": [
+     "K5",
+     "K3",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 2.6819,
+     "K1": 1.4609,
+     "K3": 1.0478,
+     "K5": 0.8248
+    },
+    "off_ms_per_token": 2.5109,
+    "best_vs_second": {
+     "verdict": "exceeds_aa",
+     "log_ratio": 0.2393
+    },
+    "resolved": true,
+    "best_per_launch": [
+     "K5",
+     "K5"
+    ]
+   },
+   "16384": {
+    "order": [
+     "K5",
+     "K3",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 5.2453,
+     "K1": 3.6494,
+     "K3": 3.1667,
+     "K5": 2.9736
+    },
+    "off_ms_per_token": 4.9785,
+    "best_vs_second": {
+     "verdict": "exceeds_aa",
+     "log_ratio": 0.0629
+    },
+    "resolved": true,
+    "best_per_launch": [
+     "K5",
+     "K5"
+    ]
+   }
+  },
+  "16": {
+   "1024": {
+    "order": [
+     "K3",
+     "K5",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 1.4403,
+     "K1": 0.8592,
+     "K3": 0.4385,
+     "K5": 0.4435
+    },
+    "off_ms_per_token": 1.3674,
+    "best_vs_second": {
+     "verdict": "inconclusive",
+     "log_ratio": 0.0113
+    },
+    "resolved": false,
+    "best_per_launch": [
+     "K5",
+     "K3"
+    ]
+   },
+   "4096": {
+    "order": [
+     "K5",
+     "K3",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 1.836,
+     "K1": 1.2357,
+     "K3": 0.9061,
+     "K5": 0.8386
+    },
+    "off_ms_per_token": 1.7673,
+    "best_vs_second": {
+     "verdict": "exceeds_aa",
+     "log_ratio": 0.0774
+    },
+    "resolved": true,
+    "best_per_launch": [
+     "K5",
+     "K5"
+    ]
+   }
+  },
+  "32": {
+   "1024": {
+    "order": [
+     "K5",
+     "K3",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 1.0297,
+     "K1": 0.5456,
+     "K3": 0.3497,
+     "K5": 0.3115
+    },
+    "off_ms_per_token": 0.992,
+    "best_vs_second": {
+     "verdict": "exceeds_aa",
+     "log_ratio": 0.1158
+    },
+    "resolved": true,
+    "best_per_launch": [
+     "K5",
+     "K5"
+    ]
+   },
+   "2048": {
+    "order": [
+     "K3",
+     "K5",
+     "K1",
+     "Z"
+    ],
+    "mean_ms_per_token": {
+     "Z": 1.2193,
+     "K1": 0.6896,
+     "K3": 0.4501,
+     "K5": 0.4558
+    },
+    "off_ms_per_token": 1.1509,
+    "best_vs_second": {
+     "verdict": "inconclusive",
+     "log_ratio": 0.0126
+    },
+    "resolved": false,
+    "best_per_launch": [
+     "K5",
+     "K3"
+    ]
+   }
+  }
+ },
+ "best_changes": [],
+ "outcome": "none"
+}

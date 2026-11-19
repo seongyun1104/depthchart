@@ -1,0 +1,10 @@
+{"config": "K3", "k": 3, "rep": 0, "dir": "K3_r0", "plan_seed": 20261109, "plan": "stage1", "startup_s": 215, "status": "complete", "wall_s": 516}
+{"config": "K1", "k": 1, "rep": 0, "dir": "K1_r0", "plan_seed": 20261109, "plan": "stage1", "startup_s": 140, "status": "complete", "wall_s": 463}
+{"config": "K5", "k": 5, "rep": 0, "dir": "K5_r0", "plan_seed": 20261109, "plan": "stage1", "startup_s": 140, "status": "complete", "wall_s": 433}
+{"config": "OFF", "k": null, "rep": 0, "dir": "OFF_r0", "plan_seed": 20261109, "plan": "stage1", "startup_s": 120, "status": "complete", "wall_s": 507}
+{"config": "Z", "k": 0, "rep": 0, "dir": "Z_r0", "plan_seed": 20261109, "plan": "stage1", "startup_s": 135, "status": "complete", "wall_s": 534}
+{"config": "Z", "k": 0, "rep": 1, "dir": "Z_r1", "plan_seed": 20261109, "plan": "stage1", "startup_s": 65, "status": "complete", "wall_s": 464}
+{"config": "OFF", "k": null, "rep": 1, "dir": "OFF_r1", "plan_seed": 20261109, "plan": "stage1", "startup_s": 65, "status": "complete", "wall_s": 454}
+{"config": "K5", "k": 5, "rep": 1, "dir": "K5_r1", "plan_seed": 20261109, "plan": "stage1", "startup_s": 70, "status": "complete", "wall_s": 364}
+{"config": "K1", "k": 1, "rep": 1, "dir": "K1_r1", "plan_seed": 20261109, "plan": "stage1", "startup_s": 65, "status": "complete", "wall_s": 390}
+{"config": "K3", "k": 3, "rep": 1, "dir": "K3_r1", "plan_seed": 20261109, "plan": "stage1", "startup_s": 70, "status": "complete", "wall_s": 371}
