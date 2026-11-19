@@ -39,11 +39,11 @@ def main():
     for (bs, ctx, cfg) in cells:
         for rep in (0, 1):
             d = json.load(open(EV / f"{cfg}_r{rep}" / f"grid_b{bs}_c{ctx}.json"))
-            for k in ("output_throughput", "median_tpot_ms", "median_itl_ms", "spec_decode_acceptance_length"):
+            for k in ("output_throughput", "median_tpot_ms", "mean_itl_ms", "median_itl_ms", "spec_decode_acceptance_length"):
                 bench[(bs, ctx, cfg)][k].append(d.get(k))
     print("| Batch (concurrency) | Context | Config | K | Acceptance length | Output tokens/s | Throughput vs. OFF "
-          "| Median TPOT (ms) | Median ITL (ms) | Step period (ms) | Delivered ms per token |")
-    print("|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|")
+          "| Median TPOT (ms) | Mean ITL (ms) | Median ITL (ms) | Step period (ms) | Delivered ms per token |")
+    print("|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
     for bs, ctx in sorted({(b, c) for b, c, _ in cells}):
         for cfg in CONFIGS:
             c, b = cells[(bs, ctx, cfg)], bench[(bs, ctx, cfg)]
@@ -52,7 +52,8 @@ def main():
             k = {"OFF": "—", "Z": "0"}.get(cfg, cfg[1:])
             tput, off = mean(b["output_throughput"]), mean(bench[(bs, ctx, "OFF")]["output_throughput"])
             print(f"| {bs} | {ctx // 1024}k | {cfg} | {k} | {al_s} | {fmt(tput, '.1f')} | {tput / off:.2f}x "
-                  f"| {fmt(mean(b['median_tpot_ms']), '.2f')} | {fmt(mean(b['median_itl_ms']), '.2f')} "
+                  f"| {fmt(mean(b['median_tpot_ms']), '.2f')} | {fmt(mean(b['mean_itl_ms']), '.2f')} "
+                  f"| {fmt(mean(b['median_itl_ms']), '.2f')} "
                   f"| {fmt(mean(c['step']), '.2f')} | {fmt(mean(c['dtok']), '.3f')} |")
 
 

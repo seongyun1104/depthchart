@@ -2,30 +2,41 @@
 
 # DepthChart
 
-*A (B, ctx) scheduling table for speculative decoding — the K controller for long-context decode.*
+**DepthChart measures how batch size, context length, and draft depth affect speculative decoding in vLLM.**
 
-> **Latest result (2026-11-19).** At the same K, the server step cost depended on which FP8 GEMM path the step's
-> input shape took. On Gemma-4 31B FP8, MRv2 and one H100 NVL, K1 at batch 16 runs every target step at M = 32. The
-> (16, 32] branch of vllm-project/vllm#66852 lowered that step by 7.6 % (1k context) and 6.5 % (4k), while 8 control
-> cells stayed within ±0.3 %. This is a reproduction credited to #66852, not a new kernel.
->
-> Read in this order:
-> 1. **[K cost map](mrv2_ctx_20261105/public_20261119/COST_MAP.md)**: measured step cost per (batch, context) × K,
->    with projected cells marked as projections.
-> 2. **[Report](mrv2_ctx_20261105/public_20261119/REPORT.md)**: the cost map, a negative result for four FP8 GEMM
->    candidates at the 64 | 65 step, and the server comparison.
-> 3. **[Raw data and reproduce commands](mrv2_ctx_20261105/public_20261119/REPORT.md#raw-data-and-how-to-reproduce)**.
->
-> This does not answer the lab's main question (below). The context axis is still unproven; see the ledger.
+On Gemma-4 31B FP8 with one H100 NVL, we found no resolved change in static draft-depth rankings across context
+lengths at a fixed batch size, using delivered milliseconds per committed token. End-to-end throughput showed a
+different pattern at batch 32: K3 led K5 at 1k, and K5 led K3 at 2k in both launches. The ranking rule was not
+applied to throughput.
 
-Single-GPU experimentation lab for the **(B, ctx) context-length-aware K controller**:
+In a separate server comparison at K=1 and batch 16, the FP8 configuration from vLLM #66852 reduced step time by 7.6%
+at 1k and 6.5% at 4k. Eight control cells stayed within ±0.3%.
 
-> Speculative decoding's optimal draft depth K is a function of both batch size B and decode-time context length ctx. The batch axis is already dynamic in production (vLLM 0.24 DSD, SGLang adaptive). The context-length axis is unclaimed in both frameworks and the literature. Long-context decode amortizes KV-read across K speculatively drafted tokens, keeping K > 0 optimal well past the batch-only crossover point where fixed K collapses. This lab measures the (B, ctx) surface, replicates it across two engines, and produces the controller that turns the surface into a runtime policy.
+Read in this order:
 
-That paragraph is the hypothesis this lab is testing, not a result. As of
-2026-10-22 the context axis has not been shown to beat a simple static
-schedule; what is and is not established, claim by claim, is in
-[`EVIDENCE_LEDGER.md`](EVIDENCE_LEDGER.md).
+1. **[Measured table](mrv2_ctx_20261105/public_20261119/HUB_TABLE.md)**: per batch, context and K (OFF, Z, K1, K3,
+   K5). It gives acceptance length, output tokens/s and its ratio to OFF, TPOT, ITL, step period and delivered ms per
+   token, as the mean of two launches.
+2. **[K cost map](mrv2_ctx_20261105/public_20261119/COST_MAP.md)**: step cost per (batch, context) × K. Projected
+   cells are marked as projections.
+3. **[Report and reproduce commands](mrv2_ctx_20261105/public_20261119/REPORT.md)**: the findings, a negative result
+   for four FP8 GEMM candidates, the server comparison, what is not claimed, offline regeneration of every table, and
+   the inputs for a GPU rerun.
+
+## Original hypothesis
+
+The lab started from the hypothesis that the best draft depth K depends on context length as well as batch size. If
+so, a K schedule with a context axis would beat a batch-only one. The design discussion is
+[vllm-project/vllm#48627](https://github.com/vllm-project/vllm/issues/48627), and the implementation is
+[vllm-project/vllm#48944](https://github.com/vllm-project/vllm/pull/48944). What has been tested so far:
+
+- **July 2026** (vLLM 0.27.1, V1 runner, concurrency 256): a batch × context schedule met its pre-registered bar
+  against a batch-only schedule, at 1.29–1.36× at three of four prefix lengths. Against static K=3 it showed no
+  consistent advantage: −11.64 %, +1.94 %, +1.42 % and −0.73 %.
+- **November 2026** (Model Runner V2, fixed batch, static K per launch): the result above, with no resolved ranking
+  change across context by delivered ms per token.
+- **Status:** the hypothesis is not established. Claim by claim, with corrections, it is recorded in
+  [`EVIDENCE_LEDGER.md`](EVIDENCE_LEDGER.md).
 
 **Two parallel tracks, one harness.** The infra (`scheduler/vllm_runner.py`,
 `speculative/adapter.py`, `benchmarks/runner.py`) is shared. The tracks
@@ -40,24 +51,6 @@ differ only in the model / drafter / GPU-budget triple:
 Multi-instance, PD-disaggregation, and llm-d remain out of scope.
 LMCache is demoted to a capacity track (orthogonal to the DSD core);
 see `lmcache/` for that arm.
-
-## Thesis
-
-Two independent axes drive the optimal K:
-
-```
-B ↑ (short ctx, fixed drafter) → verify cost dominates
-                                → optimal K drops toward 0 at the batch-only crossover
-ctx ↑ (fixed B, fixed drafter) → per-token KV-read grows with ctx (memory-bound decode)
-                                → spec K amortizes that KV-read across K drafted tokens
-                                → K > 0 stays optimal well past the batch-only crossover
-```
-
-The (B, ctx) surface — not B alone — is the schedule table this lab
-produces. That table drops into vLLM 0.24 DSD's
-`num_speculative_tokens_per_batch_size`, extended by a ctx-length axis
-that is not in the framework today, and is replicated on SGLang for
-engine-independent evidence.
 
 ## Layout
 

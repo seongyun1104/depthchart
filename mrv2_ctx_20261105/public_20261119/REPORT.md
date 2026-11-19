@@ -121,21 +121,27 @@ python kernel_probe_20261117/server_cmp/m32_projection.py kernel_probe_20261117/
 python public_20261119/build_cost_map.py | cmp - public_20261119/COST_MAP.md
 python k_rank_r2_20261119/k_rank.py | cmp - k_rank_r2_20261119/RESULT.json
 
-# per-cell r2 table (acceptance length, output tokens/s, median TPOT / ITL, step period, delivered ms/token)
+# per-cell r2 table (acceptance length, output tokens/s and vs. OFF, median TPOT, mean / median ITL, step period, delivered ms/token)
+# and the r2 GPU packet, checked against its registered manifest
+bash public_20261119/build_r2_packet.sh /tmp/costmap_packet_r2.tar
 python public_20261119/build_hub_table.py | cmp - public_20261119/HUB_TABLE.md
 ```
 **Where to find the inputs.**
 
 - **Offline table regeneration:** everything above. Python 3 and NumPy are enough, and no GPU is needed.
-- **GPU rerun of r2:** these files are included as they were at the r2 registration tag.
-  - Engine patch: `smoke/box/bs_ctx_bd09764c45.patch` (sha256 `85f25f7e…6278d7`). Applied to vLLM `7ecc83a9`, it
-    gives tree `eeb37ef757`.
-  - Wheel pin: `smoke/box/provision_mrv2.sh` (`vllm-0.33.0rc1.dev784+g7ecc83a98`, 317,037,303 bytes).
-  - Model-revision pins and weight byte checks: `smoke/box/preflight_mrv2.sh` (target `1245be01…`, drafter
-    `96d4c8ca…`). Weight sha256 values for the same revisions are in `smoke/box/model_files.tsv`, which was written
-    after r2.
-  - Box script, runner and step-trace hook: `costmap_20261107/stage1/run_stage1_box.sh`,
-    `costmap_20261107/run_costmap.py`, `smoke/trace/`.
+- **GPU rerun of r2:** the 24-file r2 packet can be rebuilt from this branch.
+  `bash public_20261119/build_r2_packet.sh` assembles it and checks its manifest against the registered value
+  (`dd8f8c69…3d4a`, `STAGE1_R2_PREREG.md` §8). The packet contains:
+  - `smoke/`, exactly as at the registration tag: engine patch `smoke/box/bs_ctx_bd09764c45.patch` (sha256
+    `85f25f7e…6278d7`; applied to vLLM `7ecc83a9`, it gives tree `eeb37ef757`), provision with the wheel pin, preflight
+    with the model-revision pins and weight byte checks, and the step-trace hook.
+  - The registered costmap scripts: `costmap_20261107/{run_costmap.py, replan.py, stage1/run_stage1_box.sh,
+    stage1/zgate.py, pilot/run_pilot_box.sh}`, plus `analyze_costmap.py` and `costmap_cmd.py` from
+    `public_20261119/repro_r2_tag/`.
+  - The box runs `stage1/run_stage1_box.sh` on an H100 NVL with the packet unpacked under `/root`. That is the layout
+    `pilot/make_packet.sh` describes. Renting and starting the box are not scripted here.
+  - Weight sha256 values for the same model revisions: `public_20261119/model_files_after_r2.tsv`. They were written
+    after r2; r2 itself checked byte counts.
   - Server arguments per launch: `cmd.json`. Cell plan: `plan.json`. Both are in the evidence directory.
 - **Gate 2 and the server comparison:** their box scripts, `kernel_probe_20261117/gate2/run_g2/run_gate2_box.sh` and
   `costmap_20261107/server_cmp/run_server_cmp_box.sh`, are included for reference. The candidate patch is
