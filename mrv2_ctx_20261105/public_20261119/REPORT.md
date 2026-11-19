@@ -81,10 +81,16 @@ Result: [`RESULT_SERVER_66852_20261119.md`](../costmap_20261107/server_cmp/run_s
 - The 64 | 65 result covers four candidates only.
 - The original question of this lab, whether a context-length axis in the K schedule beats a well-tuned batch-only
   schedule, is **not answered here**. See [`EVIDENCE_LEDGER.md`](../../EVIDENCE_LEDGER.md).
-  - On the same r2 data, **no K-rank reversal across context was found for this workload and the K range measured**
-    (Z, K1, K3, K5). The ranking used delivered ms per token, and a reversal had to be resolved by the registered
-    two-launch rule at both contexts of a batch
-    ([rules](../k_rank_r2_20261119/RULES.md), committed before computing; [result](../k_rank_r2_20261119/RESULT.md)).
+  - On the same r2 data, **ranked by delivered ms per committed token, no K-rank reversal across context was found
+    for this workload and the K range measured** (Z, K1, K3, K5).
+    - A reversal had to be resolved at both contexts of a batch by r2's launch-spread rule.
+    - The ranking criterion was fixed before the reanalysis
+      ([rules](../k_rank_r2_20261119/RULES.md); [result](../k_rank_r2_20261119/RESULT.md)).
+  - End-to-end output throughput ranks differently.
+    - At batch 32, K3 and K5 swapped observed order between 1k and 2k in both launches (K5/K3 = 0.937, 0.969 at 1k;
+      1.023, 1.010 at 2k).
+    - The reversal rule was not applied to throughput.
+    - Per-cell values: [`HUB_TABLE.md`](HUB_TABLE.md).
   - At batch 8, K5's margin over K3 narrows with context (log ratio 0.34 → 0.24 → 0.06). This is an observation
     only: the order does not reverse inside the grid.
 
@@ -113,8 +119,25 @@ python kernel_probe_20261117/server_cmp/m32_projection.py kernel_probe_20261117/
   costmap_20261107/run_20261111r2/analysis/cells.csv | cmp - kernel_probe_20261117/server_cmp/m32_projection.json
 python public_20261119/build_cost_map.py | cmp - public_20261119/COST_MAP.md
 python k_rank_r2_20261119/k_rank.py | cmp - k_rank_r2_20261119/RESULT.json
+
+# per-cell r2 table (acceptance length, output tokens/s, median TPOT / ITL, step period, delivered ms/token)
+python public_20261119/build_hub_table.py | cmp - public_20261119/HUB_TABLE.md
 ```
-The GPU box scripts are included for reference: `costmap_20261107/stage1/run_stage1_box.sh`,
-`kernel_probe_20261117/gate2/run_g2/run_gate2_box.sh` and `costmap_20261107/server_cmp/run_server_cmp_box.sh`. Each
-launch's server command and plan are in its evidence (`cmd.json`, `plan.json`). The packet builders and the full lab
-history are not part of this branch, so a GPU rerun needs those to be rebuilt.
+**Where to find the inputs.**
+
+- **Offline table regeneration:** everything above. Python 3 and NumPy are enough, and no GPU is needed.
+- **GPU rerun of r2:** these files are included as they were at the r2 registration tag.
+  - Engine patch: `smoke/box/bs_ctx_bd09764c45.patch` (sha256 `85f25f7e…6278d7`). Applied to vLLM `7ecc83a9`, it
+    gives tree `eeb37ef757`.
+  - Wheel pin: `smoke/box/provision_mrv2.sh` (`vllm-0.33.0rc1.dev784+g7ecc83a98`, 317,037,303 bytes).
+  - Model-revision pins and weight byte checks: `smoke/box/preflight_mrv2.sh` (target `1245be01…`, drafter
+    `96d4c8ca…`). Weight sha256 values for the same revisions are in `smoke/box/model_files.tsv`, which was written
+    after r2.
+  - Box script, runner and step-trace hook: `costmap_20261107/stage1/run_stage1_box.sh`,
+    `costmap_20261107/run_costmap.py`, `smoke/trace/`.
+  - Server arguments per launch: `cmd.json`. Cell plan: `plan.json`. Both are in the evidence directory.
+- **Gate 2 and the server comparison:** their box scripts, `kernel_probe_20261117/gate2/run_g2/run_gate2_box.sh` and
+  `costmap_20261107/server_cmp/run_server_cmp_box.sh`, are included for reference. The candidate patch is
+  `kernel_probe_20261117/gate2/sm90_fp8_candidates.patch`.
+- **Not included:** the packet builders and the built `.so` for gate 2 and the server comparison. A rerun of those
+  two needs them rebuilt.

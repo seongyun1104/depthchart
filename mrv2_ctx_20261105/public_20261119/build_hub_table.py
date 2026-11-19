@@ -5,7 +5,7 @@
 Sources (relative to mrv2_ctx_20261105/):
   costmap_20261107/run_20261111r2/evidence/costmap_out/<CONFIG>_r<rep>/grid_b<B>_c<C>.json   vllm bench serve output
   costmap_20261107/run_20261111r2/analysis/cells.csv                                        step period, delivered ms/token
-Each value is the mean of the two launches (r0, r1).
+Each value is the mean of the two launches (r0, r1); throughput vs. OFF = that mean over OFF's mean at the same shape.
 """
 
 import csv
@@ -41,16 +41,17 @@ def main():
             d = json.load(open(EV / f"{cfg}_r{rep}" / f"grid_b{bs}_c{ctx}.json"))
             for k in ("output_throughput", "median_tpot_ms", "median_itl_ms", "spec_decode_acceptance_length"):
                 bench[(bs, ctx, cfg)][k].append(d.get(k))
-    print("| Batch (concurrency) | Context | Config | K | Acceptance length | Output tokens/s | Median TPOT (ms) "
-          "| Median ITL (ms) | Step period (ms) | Delivered ms per token |")
-    print("|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|")
+    print("| Batch (concurrency) | Context | Config | K | Acceptance length | Output tokens/s | Throughput vs. OFF "
+          "| Median TPOT (ms) | Median ITL (ms) | Step period (ms) | Delivered ms per token |")
+    print("|---:|---:|---|---:|---:|---:|---:|---:|---:|---:|---:|")
     for bs, ctx in sorted({(b, c) for b, c, _ in cells}):
         for cfg in CONFIGS:
             c, b = cells[(bs, ctx, cfg)], bench[(bs, ctx, cfg)]
             al = mean(b["spec_decode_acceptance_length"])
             al_s = "N/A (no drafter)" if cfg == "OFF" else ("N/A (K = 0, no drafts)" if cfg == "Z" else fmt(al, ".2f"))
             k = {"OFF": "—", "Z": "0"}.get(cfg, cfg[1:])
-            print(f"| {bs} | {ctx // 1024}k | {cfg} | {k} | {al_s} | {fmt(mean(b['output_throughput']), '.1f')} "
+            tput, off = mean(b["output_throughput"]), mean(bench[(bs, ctx, "OFF")]["output_throughput"])
+            print(f"| {bs} | {ctx // 1024}k | {cfg} | {k} | {al_s} | {fmt(tput, '.1f')} | {tput / off:.2f}x "
                   f"| {fmt(mean(b['median_tpot_ms']), '.2f')} | {fmt(mean(b['median_itl_ms']), '.2f')} "
                   f"| {fmt(mean(c['step']), '.2f')} | {fmt(mean(c['dtok']), '.3f')} |")
 
