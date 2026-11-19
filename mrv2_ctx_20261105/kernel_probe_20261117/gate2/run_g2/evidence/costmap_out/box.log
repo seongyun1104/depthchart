@@ -1,0 +1,153 @@
+PACKET_SHA256 03764c94ecb23dfc65389a8ab58b0652dd0001c1ec9af72e303605a1fc11f399
+PROVISION_START 14:55:34Z
+base=7ecc83a9877552a5f4be31c133ab8502dd40f50e patched_tree=eeb37ef75784c994c61e4d3d74b183cd0c395d72 files=12
+fetch_seconds=11
+0cb3a8f6cad70482dcef4834c05395966d8d72b88aaf8a25122ad3f10a6dec82  /root/wheels/vllm-0.33.0rc1.dev784+g7ecc83a98-cp38-abi3-manylinux_2_28_x86_64.whl
+wheel_seconds=14
+install_seconds=456
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+transformers=5.22.1 pip_check=ok
+flashinfer-python==0.7.2.post1
+pandas==3.1.1
+torch==2.14.0
+torch_c_dlpack_ext==0.1.5
+torchaudio==2.11.0
+torchcodec==0.17.0
+torchvision==0.29.0
+transformers==5.22.1
+PROVISION_DONE
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+HARNESS_IMPORTS_OK 3.11.2 3.1.1
+IDENTITY_START 15:03:57Z
+IDENTITY_OK W 15:04:00Z
+IDENTITY_OK 0 15:04:04Z
+IDENTITY_OK 1 15:04:07Z
+IDENTITY_OK 2 15:04:11Z
+IDENTITY_OK 3 15:04:14Z
+IDENTITY_OK 4 15:04:17Z
+IDENTITY_OK P 15:04:21Z
+CORRECT_START 15:04:21Z
+CORRECT 0 rc=0 CORRECT_OK 15:04:24Z
+CORRECT 1 rc=0 CORRECT_OK 15:04:30Z
+CORRECT 2 rc=0 CORRECT_OK 15:04:35Z
+CORRECT 3 rc=0 CORRECT_OK 15:04:41Z
+CORRECT 4 rc=0 CORRECT_OK 15:04:46Z
+CORRECT P rc=0 CORRECT_OK 15:04:52Z
+CORRECT W rc=0 CORRECT_OK 15:04:58Z
+TIMING_START 15:04:58Z
+patching file benchmark_fp8_gemm.py
+patching file weight_shapes.py
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p1 W 15:05:22Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p1 0 15:05:46Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p1 1 15:06:12Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p1 2 15:06:36Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p1 3 15:07:00Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p1 4 15:07:26Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p1 P 15:07:50Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p2 P 15:08:14Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p2 4 15:08:40Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p2 3 15:09:03Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p2 2 15:09:28Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p2 1 15:09:53Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p2 0 15:10:17Z
+bench_fp8_res_n16384_k5376
+bench_fp8_res_n20480_k5376
+bench_fp8_res_n5376_k8192
+bench_fp8_res_n5376_k16384
+bench_fp8_res_n43008_k5376
+bench_fp8_res_n5376_k21504
+bench_fp8_res_n2048_k5376
+TIMING_DONE p2 W 15:10:41Z
+NCU_PROBE rc=1 kernels=0 /usr/local/cuda/bin/ncu 15:10:44Z

@@ -1,0 +1,119 @@
+[
+ {
+  "kind": "warmup",
+  "bs": 8,
+  "ctx": 4096,
+  "seed": 9000,
+  "order": 0,
+  "id": "warmup_b8_c4096_9000",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 1,
+  "ctx": 16384,
+  "seed": 20006,
+  "order": 1,
+  "id": "grid_b1_c16384",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 32,
+  "ctx": 1024,
+  "seed": 20008,
+  "order": 2,
+  "id": "grid_b32_c1024",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 16,
+  "ctx": 4096,
+  "seed": 20005,
+  "order": 3,
+  "id": "grid_b16_c4096",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 1,
+  "ctx": 4096,
+  "seed": 20003,
+  "order": 4,
+  "id": "grid_b1_c4096",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 8,
+  "ctx": 1024,
+  "seed": 20001,
+  "order": 5,
+  "id": "grid_b8_c1024",
+  "role": "control"
+ },
+ {
+  "kind": "sentinel",
+  "bs": 8,
+  "ctx": 4096,
+  "seed": 9001,
+  "order": 6,
+  "id": "sentinel_b8_c4096_9001",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 8,
+  "ctx": 4096,
+  "seed": 20004,
+  "order": 7,
+  "id": "grid_b8_c4096",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 32,
+  "ctx": 2048,
+  "seed": 20009,
+  "order": 8,
+  "id": "grid_b32_c2048",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 8,
+  "ctx": 16384,
+  "seed": 20007,
+  "order": 9,
+  "id": "grid_b8_c16384",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 1,
+  "ctx": 1024,
+  "seed": 20000,
+  "order": 10,
+  "id": "grid_b1_c1024",
+  "role": "control"
+ },
+ {
+  "kind": "grid",
+  "bs": 16,
+  "ctx": 1024,
+  "seed": 20002,
+  "order": 11,
+  "id": "grid_b16_c1024",
+  "role": "control"
+ },
+ {
+  "kind": "sentinel",
+  "bs": 8,
+  "ctx": 4096,
+  "seed": 9002,
+  "order": 12,
+  "id": "sentinel_b8_c4096_9002",
+  "role": "control"
+ }
+]

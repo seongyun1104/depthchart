@@ -1,0 +1,6 @@
+{"config": "K1", "k": 1, "rep": 0, "dir": "K1_0_r0", "plan_seed": 20261109, "plan": "stage1", "startup_s": 70, "arm": "0", "status": "complete", "wall_s": 399}
+{"config": "K1", "k": 1, "rep": 0, "dir": "K1_P_r0", "plan_seed": 20261109, "plan": "stage1", "startup_s": 70, "arm": "P", "status": "complete", "wall_s": 399}
+{"config": "K1", "k": 1, "rep": 1, "dir": "K1_P_r1", "plan_seed": 20261109, "plan": "stage1", "startup_s": 70, "arm": "P", "status": "complete", "wall_s": 399}
+{"config": "K1", "k": 1, "rep": 1, "dir": "K1_0_r1", "plan_seed": 20261109, "plan": "stage1", "startup_s": 70, "arm": "0", "status": "complete", "wall_s": 400}
+{"config": "K1", "k": 1, "rep": 2, "dir": "K1_0_r2", "plan_seed": 20261109, "plan": "stage1", "startup_s": 70, "arm": "0", "status": "complete", "wall_s": 400}
+{"config": "K1", "k": 1, "rep": 2, "dir": "K1_P_r2", "plan_seed": 20261109, "plan": "stage1", "startup_s": 70, "arm": "P", "status": "complete", "wall_s": 398}

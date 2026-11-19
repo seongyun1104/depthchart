@@ -1,0 +1,251 @@
+PACKET_SHA256 5871f352af2876db9d398db4c4dc11cf582d2266db92603f24011f5dbcffbadb
+PROVISION_START 00:59:04Z
+base=7ecc83a9877552a5f4be31c133ab8502dd40f50e patched_tree=eeb37ef75784c994c61e4d3d74b183cd0c395d72 files=12
+fetch_seconds=7
+0cb3a8f6cad70482dcef4834c05395966d8d72b88aaf8a25122ad3f10a6dec82  /root/wheels/vllm-0.33.0rc1.dev784+g7ecc83a98-cp38-abi3-manylinux_2_28_x86_64.whl
+wheel_seconds=9
+install_seconds=189
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+transformers=5.22.1 pip_check=ok
+flashinfer-python==0.7.2.post1
+torch==2.14.0
+torch_c_dlpack_ext==0.1.5
+torchaudio==2.11.0
+torchcodec==0.17.0
+torchvision==0.29.0
+transformers==5.22.1
+PROVISION_DONE
+PREFLIGHT_START 01:02:41Z
+
+=== 1. shell discipline ===
+set -euo pipefail is active; credential handling runs without -x
+
+=== 2. versions ===
+NVIDIA H100 NVL, 95830 MiB, 580.178.04
+driver CUDA runtime: 13.0
+driver major: 580
+Python 3.12.15
+{
+  "python": "3.12.15",
+  "torch": "2.14.0+cu130",
+  "torch_cuda_build": "13.0",
+  "cudnn": 92400
+}
+torch CUDA build: 13.0, host driver: 580.178.04
+
+=== 3. CUDA tensor, one operation, synchronize ===
+  device: NVIDIA H100 NVL
+  matmul ok, sum=-5.576e+04
+  compute capability = 9.0
+  memory free/total = 92.3/93.1 GiB
+
+=== 4. vLLM and its compiled extension ===
+  tree       = eeb37ef75784c994c61e4d3d74b183cd0c395d72
+  expected   = eeb37ef75784c994c61e4d3d74b183cd0c395d72
+  head       = 7ecc83a9877552a5f4be31c133ab8502dd40f50e
+W1119 01:02:47.554000 1412 site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1119 01:02:47.554000 1412 site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1119 01:02:47.554000 1412 site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+{
+  "vllm_version": "0.1.dev1+g7ecc83a98.d20261119",
+  "vllm_file": "/workspace/vllm/vllm/__init__.py",
+  "extension_objects": [
+    "_C_stable_libtorch.abi3.so",
+    "_deepselect_C.abi3.so",
+    "_flashkda_C.abi3.so",
+    "_flashmla_C.abi3.so",
+    "_flashmla_extension_C.abi3.so",
+    "_moe_C_stable_libtorch.abi3.so",
+    "cumem_allocator.abi3.so",
+    "fs_io_C.abi3.so",
+    "spinloop.abi3.so"
+  ],
+  "custom_ops_present": true,
+  "rms_norm_registered": true,
+  "compute_capability": "9.0",
+  "compiled_op_executed": "vllm._custom_ops.rms_norm on cuda:0",
+  "vllm_commit_attr": null
+}
+flashinfer-python==0.7.2.post1
+torch==2.14.0
+torch_c_dlpack_ext==0.1.5
+torchaudio==2.11.0
+torchcodec==0.17.0
+torchvision==0.29.0
+transformers==5.22.1
+  precompiled wheel URLs recorded: 0
+
+=== 4a. source and binaries actually loaded ===
+W1119 01:02:49.721000 1470 site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1119 01:02:49.721000 1470 site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1119 01:02:49.721000 1470 site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+  modules from /workspace/vllm, mapped objects identical to the pinned wheel
+
+=== 4b. trace hook (scheduler + MRv2 graph managers) ===
+W1119 01:02:58.803000 1572 site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1119 01:02:58.803000 1572 site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1119 01:02:58.804000 1572 site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+  trace hook installs on /workspace/vllm/vllm/v1/core/sched/scheduler.py and /workspace/vllm/vllm/v1/worker/gpu/cudagraph_utils.py ; EngineCoreProc wait row written
+
+=== 4c. pre-download gates ===
+  free space on /root = 66 GiB, need 45 GiB
+  no HF token file; the pinned repos are public, pulling unauthenticated
+  smoke tools compile
+W1119 01:03:09.492000 1674 site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1119 01:03:09.493000 1674 site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1119 01:03:09.493000 1674 site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+  per-layer config contract holds for target and draft
+
+=== 5. models, only now ===
+36118906753	/root/models/target
+971236272	/root/models/draft
+  weight sizes match the pinned revisions
+
+=== 6. manifest ===
+{
+  "gpu": "NVIDIA H100 NVL, 95830 MiB, 580.178.04",
+  "driver_cuda_runtime": "13.0",
+  "compute_capability": "9.0",
+  "torch": "2.14.0+cu130",
+  "torch_cuda_build": "13.0",
+  "transformers": "5.22.1",
+  "vllm_version": "0.1.dev1+g7ecc83a98.d20261119",
+  "vllm_tree": "eeb37ef75784c994c61e4d3d74b183cd0c395d72",
+  "vllm_base": "7ecc83a9877552a5f4be31c133ab8502dd40f50e",
+  "patch": "dc/bs-ctx-dsd-zfix bd09764c45 = 8e5f0678a1 + draft_decode capture fix + test updates (local, not pushed)",
+  "wheel_sha256": "0cb3a8f6cad70482dcef4834c05395966d8d72b88aaf8a25122ad3f10a6dec82",
+  "target_repo": "prithivMLmods/gemma-4-31B-it-qat-FP8",
+  "target_revision": "1245be0199c1b792597ed7ea1ac5897269e66a89",
+  "draft_repo": "google/gemma-4-31B-it-qat-q4_0-unquantized-assistant",
+  "draft_revision": "96d4c8ca3cb38c107a8478587878124895d1e844",
+  "target_weight_bytes": 36086696440,
+  "draft_weight_bytes": 939042560,
+  "hf_authenticated": false,
+  "stage0_deadline": "",
+  "precompiled_wheel_urls": []
+}
+
+=== 7. marker ===
+all required checks passed
+PREFLIGHT_OK
+SO_SWAP_START 01:04:46Z
+W1119 01:04:47.289000 2511 site-packages/torch/_opaque_base.py:6] torch._opaque_base is deprecated, use torch._custom_class_base instead
+W1119 01:04:47.289000 2511 site-packages/torch/_library/opaque_object.py:288] register_opaque_type is deprecated, use register_custom_class instead
+W1119 01:04:47.290000 2511 site-packages/torch/_library/opaque_object.py:211] typ='value' is deprecated, use typ='constant' instead
+SO_LOAD_PASS 01:04:48Z
+COMPARE_START configs=K1,K1,K1,K1,K1,K1 arms=0,P,P,0,0,P 01:04:48Z
+01:04:48Z start configs=['K1', 'K1', 'K1', 'K1', 'K1', 'K1'] arms=['0', 'P', 'P', '0', '0', 'P'] warm=0 plan=stage1 plan_seed=20261109 deadline=04:13:41Z
+01:08:23Z warm startup_s=215
+01:08:23Z warm_K1_0 identity pass=True processes=2 []
+01:08:40Z warm request rc=0 timeout=False
+01:08:41Z warm server stopped, process group gone=True
+01:09:51Z K1_0_r0 startup_s=70
+01:09:51Z K1_0_r0 identity pass=True processes=2 []
+01:10:13Z K1_0_r0 warmup_b8_c4096_9000 rc=0 timeout=False s=22 preempt=False tpot=11.038746877934255
+01:10:33Z K1_0_r0 grid_b1_c16384 rc=0 timeout=False s=20 preempt=False tpot=9.358697583724433
+01:11:00Z K1_0_r0 grid_b32_c1024 rc=0 timeout=False s=27 preempt=False tpot=17.40610467449139
+01:11:34Z K1_0_r0 grid_b16_c4096 rc=0 timeout=False s=34 preempt=False tpot=19.817747895931117
+01:11:37Z K1_0_r0 early_gate pass=True []
+01:11:53Z K1_0_r0 grid_b1_c4096 rc=0 timeout=False s=16 preempt=False tpot=7.769012395931139
+01:12:11Z K1_0_r0 grid_b8_c1024 rc=0 timeout=False s=18 preempt=False tpot=9.023291232394401
+01:12:33Z K1_0_r0 sentinel_b8_c4096_9001 rc=0 timeout=False s=22 preempt=False tpot=11.611586694053123
+01:12:55Z K1_0_r0 grid_b8_c4096 rc=0 timeout=False s=22 preempt=False tpot=11.639048837245879
+01:13:26Z K1_0_r0 grid_b32_c2048 rc=0 timeout=False s=31 preempt=False tpot=22.0862789960874
+01:14:13Z K1_0_r0 grid_b8_c16384 rc=0 timeout=False s=47 preempt=False tpot=29.036863348200352
+01:14:28Z K1_0_r0 grid_b1_c1024 rc=0 timeout=False s=16 preempt=False tpot=7.329521956181552
+01:14:54Z K1_0_r0 grid_b16_c1024 rc=0 timeout=False s=25 preempt=False tpot=13.763318787167519
+01:15:16Z K1_0_r0 sentinel_b8_c4096_9002 rc=0 timeout=False s=22 preempt=False tpot=11.738755185446003
+01:15:20Z K1_0_r0 server stopped, process group gone=True
+01:15:20Z K1_0_r0 launch_gate pass=True valid_share=1.0 [] drift=0.0108
+01:16:30Z K1_P_r0 startup_s=70
+01:16:30Z K1_P_r0 identity pass=True processes=2 []
+01:16:52Z K1_P_r0 warmup_b8_c4096_9000 rc=0 timeout=False s=22 preempt=False tpot=11.146500484350497
+01:17:12Z K1_P_r0 grid_b1_c16384 rc=0 timeout=False s=20 preempt=False tpot=9.366815003129743
+01:17:40Z K1_P_r0 grid_b32_c1024 rc=0 timeout=False s=27 preempt=False tpot=17.50955254147116
+01:18:13Z K1_P_r0 grid_b16_c4096 rc=0 timeout=False s=33 preempt=False tpot=19.124770891236363
+01:18:16Z K1_P_r0 early_gate pass=True []
+01:18:32Z K1_P_r0 grid_b1_c4096 rc=0 timeout=False s=16 preempt=False tpot=7.768473760563398
+01:18:49Z K1_P_r0 grid_b8_c1024 rc=0 timeout=False s=18 preempt=False tpot=9.046790227699518
+01:19:11Z K1_P_r0 sentinel_b8_c4096_9001 rc=0 timeout=False s=22 preempt=False tpot=11.666270824726256
+01:19:33Z K1_P_r0 grid_b8_c4096 rc=0 timeout=False s=22 preempt=False tpot=11.66573806572779
+01:20:04Z K1_P_r0 grid_b32_c2048 rc=0 timeout=False s=31 preempt=False tpot=22.069985413928116
+01:20:52Z K1_P_r0 grid_b8_c16384 rc=0 timeout=False s=47 preempt=False tpot=29.04909187245682
+01:21:07Z K1_P_r0 grid_b1_c1024 rc=0 timeout=False s=16 preempt=False tpot=7.338035267605766
+01:21:32Z K1_P_r0 grid_b16_c1024 rc=0 timeout=False s=25 preempt=False tpot=12.823810478090794
+01:21:54Z K1_P_r0 sentinel_b8_c4096_9002 rc=0 timeout=False s=22 preempt=False tpot=11.72760066666646
+01:21:59Z K1_P_r0 server stopped, process group gone=True
+01:21:59Z K1_P_r0 launch_gate pass=True valid_share=1.0 [] drift=0.0082
+01:23:09Z K1_P_r1 startup_s=70
+01:23:09Z K1_P_r1 identity pass=True processes=2 []
+01:23:31Z K1_P_r1 warmup_b8_c4096_9000 rc=0 timeout=False s=22 preempt=False tpot=11.130241123630757
+01:23:51Z K1_P_r1 grid_b1_c16384 rc=0 timeout=False s=20 preempt=False tpot=9.367496740219075
+01:24:19Z K1_P_r1 grid_b32_c1024 rc=0 timeout=False s=27 preempt=False tpot=17.49048383881064
+01:24:52Z K1_P_r1 grid_b16_c4096 rc=0 timeout=False s=34 preempt=False tpot=19.138910131455223
+01:24:55Z K1_P_r1 early_gate pass=True []
+01:25:11Z K1_P_r1 grid_b1_c4096 rc=0 timeout=False s=16 preempt=False tpot=7.7680781643190375
+01:25:29Z K1_P_r1 grid_b8_c1024 rc=0 timeout=False s=18 preempt=False tpot=9.039061013302149
+01:25:51Z K1_P_r1 sentinel_b8_c4096_9001 rc=0 timeout=False s=22 preempt=False tpot=11.642156651799656
+01:26:12Z K1_P_r1 grid_b8_c4096 rc=0 timeout=False s=22 preempt=False tpot=11.668265339592997
+01:26:43Z K1_P_r1 grid_b32_c2048 rc=0 timeout=False s=31 preempt=False tpot=22.11273488732412
+01:27:31Z K1_P_r1 grid_b8_c16384 rc=0 timeout=False s=47 preempt=False tpot=29.183242282472623
+01:27:46Z K1_P_r1 grid_b1_c1024 rc=0 timeout=False s=15 preempt=False tpot=7.336801441314348
+01:28:11Z K1_P_r1 grid_b16_c1024 rc=0 timeout=False s=25 preempt=False tpot=12.83873585367781
+01:28:33Z K1_P_r1 sentinel_b8_c4096_9002 rc=0 timeout=False s=22 preempt=False tpot=11.771247131455397
+01:28:38Z K1_P_r1 server stopped, process group gone=True
+01:28:38Z K1_P_r1 launch_gate pass=True valid_share=1.0 [] drift=0.0041
+01:29:48Z K1_0_r1 startup_s=70
+01:29:48Z K1_0_r1 identity pass=True processes=2 []
+01:30:10Z K1_0_r1 warmup_b8_c4096_9000 rc=0 timeout=False s=22 preempt=False tpot=11.114523396713416
+01:30:30Z K1_0_r1 grid_b1_c16384 rc=0 timeout=False s=20 preempt=False tpot=9.360377959311194
+01:30:57Z K1_0_r1 grid_b32_c1024 rc=0 timeout=False s=27 preempt=False tpot=17.49435889045371
+01:31:32Z K1_0_r1 grid_b16_c4096 rc=0 timeout=False s=34 preempt=False tpot=19.81626637167439
+01:31:34Z K1_0_r1 early_gate pass=True []
+01:31:50Z K1_0_r1 grid_b1_c4096 rc=0 timeout=False s=16 preempt=False tpot=7.768003471048277
+01:32:08Z K1_0_r1 grid_b8_c1024 rc=0 timeout=False s=18 preempt=False tpot=9.055174003129773
+01:32:30Z K1_0_r1 sentinel_b8_c4096_9001 rc=0 timeout=False s=22 preempt=False tpot=11.62566901486709
+01:32:52Z K1_0_r1 grid_b8_c4096 rc=0 timeout=False s=22 preempt=False tpot=11.646254306729325
+01:33:23Z K1_0_r1 grid_b32_c2048 rc=0 timeout=False s=31 preempt=False tpot=22.099249176838928
+01:34:10Z K1_0_r1 grid_b8_c16384 rc=0 timeout=False s=47 preempt=False tpot=29.232813752738444
+01:34:26Z K1_0_r1 grid_b1_c1024 rc=0 timeout=False s=16 preempt=False tpot=7.33523924726126
+01:34:51Z K1_0_r1 grid_b16_c1024 rc=0 timeout=False s=25 preempt=False tpot=13.764753798904108
+01:35:13Z K1_0_r1 sentinel_b8_c4096_9002 rc=0 timeout=False s=22 preempt=False tpot=11.772506428794967
+01:35:18Z K1_0_r1 server stopped, process group gone=True
+01:35:18Z K1_0_r1 launch_gate pass=True valid_share=1.0 [] drift=0.0047
+01:36:28Z K1_0_r2 startup_s=70
+01:36:28Z K1_0_r2 identity pass=True processes=2 []
+01:36:50Z K1_0_r2 warmup_b8_c4096_9000 rc=0 timeout=False s=22 preempt=False tpot=11.117255392018748
+01:37:10Z K1_0_r2 grid_b1_c16384 rc=0 timeout=False s=20 preempt=False tpot=9.367684231612104
+01:37:37Z K1_0_r2 grid_b32_c1024 rc=0 timeout=False s=27 preempt=False tpot=17.47300865101703
+01:38:11Z K1_0_r2 grid_b16_c4096 rc=0 timeout=False s=34 preempt=False tpot=19.90566412206585
+01:38:14Z K1_0_r2 early_gate pass=True []
+01:38:30Z K1_0_r2 grid_b1_c4096 rc=0 timeout=False s=16 preempt=False tpot=7.770795615023885
+01:38:48Z K1_0_r2 grid_b8_c1024 rc=0 timeout=False s=18 preempt=False tpot=9.057009142409745
+01:39:10Z K1_0_r2 sentinel_b8_c4096_9001 rc=0 timeout=False s=22 preempt=False tpot=11.63796331690117
+01:39:32Z K1_0_r2 grid_b8_c4096 rc=0 timeout=False s=22 preempt=False tpot=11.644882499999675
+01:40:03Z K1_0_r2 grid_b32_c2048 rc=0 timeout=False s=31 preempt=False tpot=22.13558880907662
+01:40:50Z K1_0_r2 grid_b8_c16384 rc=0 timeout=False s=47 preempt=False tpot=29.21325888184693
+01:41:05Z K1_0_r2 grid_b1_c1024 rc=0 timeout=False s=16 preempt=False tpot=7.329899796556911
+01:41:31Z K1_0_r2 grid_b16_c1024 rc=0 timeout=False s=25 preempt=False tpot=13.764017733958983
+01:41:53Z K1_0_r2 sentinel_b8_c4096_9002 rc=0 timeout=False s=22 preempt=False tpot=11.726148971048575
+01:41:58Z K1_0_r2 server stopped, process group gone=True
+01:41:58Z K1_0_r2 launch_gate pass=True valid_share=1.0 [] drift=0.0114
+01:43:08Z K1_P_r2 startup_s=70
+01:43:08Z K1_P_r2 identity pass=True processes=2 []
+01:43:30Z K1_P_r2 warmup_b8_c4096_9000 rc=0 timeout=False s=22 preempt=False tpot=11.045723851330521
+01:43:50Z K1_P_r2 grid_b1_c16384 rc=0 timeout=False s=20 preempt=False tpot=9.363757589984607
+01:44:17Z K1_P_r2 grid_b32_c1024 rc=0 timeout=False s=27 preempt=False tpot=17.49597202738663
+01:44:51Z K1_P_r2 grid_b16_c4096 rc=0 timeout=False s=33 preempt=False tpot=19.09333460719883
+01:44:53Z K1_P_r2 early_gate pass=True []
+01:45:10Z K1_P_r2 grid_b1_c4096 rc=0 timeout=False s=16 preempt=False tpot=7.7665261017213085
+01:45:27Z K1_P_r2 grid_b8_c1024 rc=0 timeout=False s=18 preempt=False tpot=9.054184875586545
+01:45:49Z K1_P_r2 sentinel_b8_c4096_9001 rc=0 timeout=False s=22 preempt=False tpot=11.639956075899965
+01:46:11Z K1_P_r2 grid_b8_c4096 rc=0 timeout=False s=22 preempt=False tpot=11.65838395226913
+01:46:42Z K1_P_r2 grid_b32_c2048 rc=0 timeout=False s=31 preempt=False tpot=22.041927051642844
+01:47:29Z K1_P_r2 grid_b8_c16384 rc=0 timeout=False s=47 preempt=False tpot=29.113641629107942
+01:47:45Z K1_P_r2 grid_b1_c1024 rc=0 timeout=False s=15 preempt=False tpot=7.338102270735167
+01:48:09Z K1_P_r2 grid_b16_c1024 rc=0 timeout=False s=25 preempt=False tpot=12.830721823160935
+01:48:32Z K1_P_r2 sentinel_b8_c4096_9002 rc=0 timeout=False s=22 preempt=False tpot=11.717493373239327
+01:48:36Z K1_P_r2 server stopped, process group gone=True
+01:48:36Z K1_P_r2 launch_gate pass=True valid_share=1.0 [] drift=0.0073
+01:48:36Z ALL_DONE
+COMPARE_END rc=0 01:48:36Z

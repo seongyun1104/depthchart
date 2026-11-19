@@ -1,0 +1,1 @@
+["vllm", "serve", "/root/models/target", "--port", "8000", "--attention-backend", "TRITON_ATTN", "--no-enable-prefix-caching", "--max-num-seqs", "64", "--max-model-len", "34816", "--gpu-memory-utilization", "0.90"]

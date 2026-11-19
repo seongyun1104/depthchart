@@ -1,0 +1,2 @@
+name, memory.total [MiB], driver_version, clocks.max.sm [MHz], clocks.max.memory [MHz]
+NVIDIA H100 NVL, 95830 MiB, 595.91.07, 1785 MHz, 2619 MHz

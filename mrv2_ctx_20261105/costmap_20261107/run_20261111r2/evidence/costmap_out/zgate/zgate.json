@@ -1,0 +1,51 @@
+{
+ "default_caches": [
+  "/root/.cache",
+  "/root/.triton",
+  "/root/.nv",
+  "/tmp/torchinductor_root"
+ ],
+ "redirect": {
+  "HOME": "/root/zgate/home",
+  "XDG_CACHE_HOME": "/root/zgate/cache",
+  "VLLM_CACHE_ROOT": "/root/zgate/cache/vllm",
+  "FLASHINFER_WORKSPACE_BASE": "/root/zgate/home",
+  "TRITON_CACHE_DIR": "/root/zgate/triton",
+  "TORCHINDUCTOR_CACHE_DIR": "/root/zgate/inductor",
+  "CUDA_CACHE_PATH": "/root/zgate/nv"
+ },
+ "gpu_before": {
+  "apps": [],
+  "memory_used_mib": 0
+ },
+ "startup_s": 215,
+ "health": 200,
+ "captures": {
+  "target": [
+   11
+  ],
+  "drafter_prefill": [
+   11
+  ]
+ },
+ "request": {
+  "status": 200,
+  "completion_tokens": 16,
+  "success_delta": 1.0,
+  "draft_tokens_delta": 0.0,
+  "sched_rows": 16,
+  "selected_k": [
+   0
+  ]
+ },
+ "group_gone": true,
+ "gpu_after": {
+  "apps": [],
+  "memory_used_mib": 0
+ },
+ "default_cache_files": 1160,
+ "default_cache_changed": [],
+ "zgate_dir_removed": true,
+ "pass": true,
+ "reason": null
+}

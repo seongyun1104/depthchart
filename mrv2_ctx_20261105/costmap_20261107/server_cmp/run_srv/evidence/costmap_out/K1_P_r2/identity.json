@@ -1,0 +1,35 @@
+{
+ "arm": "P",
+ "pass": true,
+ "reasons": [],
+ "processes": [
+  {
+   "pid": 17653,
+   "cmdline": "/venv/main/bin/python3.12 /venv/main/bin/vllm serve /root/models/target --port 8000 --attention-backend TRITON_ATTN --no-enable-prefix-caching --max-num-seqs 64 --max-model-len 34816 --gpu-memory-util",
+   "so_paths": [
+    "/workspace/vllm/vllm/_C_stable_libtorch.abi3.so"
+   ],
+   "selectors": {
+    "VLLM_TEST_SM90_FP8_PR66852": "1"
+   },
+   "so_sha256": "f2b60575362a6726eb1a650cca0788a44533ee6582370bd2df2c795d3a7061db"
+  },
+  {
+   "pid": 17844,
+   "cmdline": "VLLM::EngineCore",
+   "so_paths": [
+    "/workspace/vllm/vllm/_C_stable_libtorch.abi3.so"
+   ],
+   "selectors": {
+    "VLLM_TEST_SM90_FP8_PR66852": "1"
+   },
+   "so_sha256": "f2b60575362a6726eb1a650cca0788a44533ee6582370bd2df2c795d3a7061db"
+  }
+ ],
+ "linear_kernels_selected": [
+  [
+   "CutlassFP8ScaledMMLinearKernel",
+   "CompressedTensorsW8A8Fp8"
+  ]
+ ]
+}

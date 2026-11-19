@@ -1,0 +1,1 @@
+{"so_paths": ["/workspace/vllm/vllm/_C_stable_libtorch.abi3.so"], "so_sha256": "f2b60575362a6726eb1a650cca0788a44533ee6582370bd2df2c795d3a7061db", "rms_norm_ok": true, "self_identity": {"pass": true, "reasons": [], "processes": 1}}

@@ -1,0 +1,929 @@
+{
+ "outcome": "lowers",
+ "statement": "Under these conditions, the #66852 (16, 32] config lowered the server step at M = 32; controls unchanged.",
+ "tests": [
+  "grid_b16_c1024",
+  "grid_b16_c4096"
+ ],
+ "lowers": [
+  "grid_b16_c1024",
+  "grid_b16_c4096"
+ ],
+ "test_rule_met": true,
+ "control_breaches": [],
+ "controls_evaluated": 8,
+ "controls_expected": 8,
+ "controls_missing": {},
+ "controls_absent": 0,
+ "missing_tests": [],
+ "cells": {
+  "grid_b16_c1024": {
+   "m": 32,
+   "role": "test",
+   "n0": 3,
+   "nP": 3,
+   "d": 0.07862,
+   "s": 0.00356,
+   "separated": true,
+   "saved_ms": 1.8669,
+   "threshold": 0.03046,
+   "lowers": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     24.7045,
+     24.6857,
+     24.6832
+    ],
+    "P": [
+     22.8344,
+     22.8597,
+     22.7785
+    ]
+   },
+   "acceptance": {
+    "0": [
+     0.865,
+     0.865,
+     0.8692
+    ],
+    "P": [
+     0.865,
+     0.865,
+     0.8643
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  },
+  "grid_b16_c4096": {
+   "m": 32,
+   "role": "test",
+   "n0": 3,
+   "nP": 3,
+   "d": 0.06699,
+   "s": 0.00998,
+   "separated": true,
+   "saved_ms": 1.7143,
+   "threshold": 0.03046,
+   "lowers": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     26.3767,
+     26.5053,
+     26.4995
+    ],
+    "P": [
+     24.6852,
+     24.9003,
+     24.653
+    ]
+   },
+   "acceptance": {
+    "0": [
+     0.8612,
+     0.8682,
+     0.8663
+    ],
+    "P": [
+     0.8614,
+     0.8612,
+     0.8614
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      32
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  },
+  "grid_b1_c1024": {
+   "m": 2,
+   "role": "control",
+   "n0": 3,
+   "nP": 3,
+   "d": -0.00078,
+   "s": 0.0006,
+   "separated": false,
+   "saved_ms": -0.0114,
+   "threshold": 0.0202,
+   "holds": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     14.5684,
+     14.5771,
+     14.5707
+    ],
+    "P": [
+     14.5802,
+     14.5864,
+     14.5839
+    ]
+   },
+   "acceptance": {
+    "0": [
+     0.9907,
+     0.9907,
+     0.9907
+    ],
+    "P": [
+     0.9907,
+     0.9907,
+     0.9907
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  },
+  "grid_b1_c16384": {
+   "m": 2,
+   "role": "control",
+   "n0": 3,
+   "nP": 3,
+   "d": -3e-05,
+   "s": 0.00199,
+   "separated": false,
+   "saved_ms": -0.0005,
+   "threshold": 0.0202,
+   "holds": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     18.1307,
+     18.1207,
+     18.1568
+    ],
+    "P": [
+     18.1187,
+     18.1472,
+     18.1437
+    ]
+   },
+   "acceptance": {
+    "0": [
+     0.9814,
+     0.9814,
+     0.9814
+    ],
+    "P": [
+     0.9814,
+     0.9814,
+     0.9814
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  },
+  "grid_b1_c4096": {
+   "m": 2,
+   "role": "control",
+   "n0": 3,
+   "nP": 3,
+   "d": -0.0,
+   "s": 0.00038,
+   "separated": false,
+   "saved_ms": -0.0,
+   "threshold": 0.0202,
+   "holds": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     15.4338,
+     15.4342,
+     15.4397
+    ],
+    "P": [
+     15.4375,
+     15.4336,
+     15.4367
+    ]
+   },
+   "acceptance": {
+    "0": [
+     1.0,
+     1.0,
+     1.0
+    ],
+    "P": [
+     1.0,
+     1.0,
+     1.0
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      2
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  },
+  "grid_b32_c1024": {
+   "m": 64,
+   "role": "control",
+   "n0": 3,
+   "nP": 3,
+   "d": -0.00219,
+   "s": 0.00604,
+   "separated": false,
+   "saved_ms": -0.069,
+   "threshold": 0.0202,
+   "holds": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     31.4744,
+     31.6652,
+     31.6056
+    ],
+    "P": [
+     31.6706,
+     31.6335,
+     31.6482
+    ]
+   },
+   "acceptance": {
+    "0": [
+     0.95,
+     0.9499,
+     0.9499
+    ],
+    "P": [
+     0.9499,
+     0.9499,
+     0.9499
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  },
+  "grid_b32_c2048": {
+   "m": 64,
+   "role": "control",
+   "n0": 3,
+   "nP": 3,
+   "d": 0.00131,
+   "s": 0.00223,
+   "separated": false,
+   "saved_ms": 0.0434,
+   "threshold": 0.0202,
+   "holds": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     32.9679,
+     33.0415,
+     33.0256
+    ],
+    "P": [
+     32.9846,
+     32.9513,
+     32.969
+    ]
+   },
+   "acceptance": {
+    "0": [
+     0.9771,
+     0.9773,
+     0.9768
+    ],
+    "P": [
+     0.9771,
+     0.9769,
+     0.9771
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      64
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  },
+  "grid_b8_c1024": {
+   "m": 16,
+   "role": "control",
+   "n0": 3,
+   "nP": 3,
+   "d": -0.0023,
+   "s": 0.00699,
+   "separated": false,
+   "saved_ms": -0.0414,
+   "threshold": 0.0202,
+   "holds": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     17.9288,
+     17.994,
+     18.0546
+    ],
+    "P": [
+     18.0411,
+     18.0301,
+     18.0303
+    ]
+   },
+   "acceptance": {
+    "0": [
+     0.986,
+     0.986,
+     0.986
+    ],
+    "P": [
+     0.9864,
+     0.9864,
+     0.986
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  },
+  "grid_b8_c16384": {
+   "m": 16,
+   "role": "control",
+   "n0": 3,
+   "nP": 3,
+   "d": -0.00278,
+   "s": 0.00516,
+   "separated": false,
+   "saved_ms": -0.0693,
+   "threshold": 0.0202,
+   "holds": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     24.8472,
+     24.9757,
+     24.9116
+    ],
+    "P": [
+     24.9698,
+     24.9835,
+     24.9891
+    ]
+   },
+   "acceptance": {
+    "0": [
+     0.9872,
+     0.988,
+     0.988
+    ],
+    "P": [
+     0.988,
+     0.9872,
+     0.988
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  },
+  "grid_b8_c4096": {
+   "m": 16,
+   "role": "control",
+   "n0": 3,
+   "nP": 3,
+   "d": -0.00074,
+   "s": 0.00191,
+   "separated": false,
+   "saved_ms": -0.0143,
+   "threshold": 0.0202,
+   "holds": true,
+   "status": "evaluated",
+   "step_ms": {
+    "0": [
+     19.3789,
+     19.3929,
+     19.3901
+    ],
+    "P": [
+     19.4173,
+     19.4071,
+     19.3803
+    ]
+   },
+   "acceptance": {
+    "0": [
+     0.986,
+     0.986,
+     0.986
+    ],
+    "P": [
+     0.986,
+     0.986,
+     0.986
+    ]
+   },
+   "seen": [
+    {
+     "launch": "K1_0_r0",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r0",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r1",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r1",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_0_r2",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    },
+    {
+     "launch": "K1_P_r2",
+     "graph_tokens": [
+      16
+     ],
+     "valid": true,
+     "invalid": []
+    }
+   ]
+  }
+ },
+ "launches": [
+  {
+   "dir": "K1_0_r0",
+   "arm": "0",
+   "rep": 0,
+   "status": "complete"
+  },
+  {
+   "dir": "K1_P_r0",
+   "arm": "P",
+   "rep": 0,
+   "status": "complete"
+  },
+  {
+   "dir": "K1_P_r1",
+   "arm": "P",
+   "rep": 1,
+   "status": "complete"
+  },
+  {
+   "dir": "K1_0_r1",
+   "arm": "0",
+   "rep": 1,
+   "status": "complete"
+  },
+  {
+   "dir": "K1_0_r2",
+   "arm": "0",
+   "rep": 2,
+   "status": "complete"
+  },
+  {
+   "dir": "K1_P_r2",
+   "arm": "P",
+   "rep": 2,
+   "status": "complete"
+  }
+ ]
+}
