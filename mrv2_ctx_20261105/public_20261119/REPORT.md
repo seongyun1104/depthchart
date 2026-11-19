@@ -15,7 +15,8 @@ Setup for everything below: `prithivMLmods/gemma-4-31B-it-qat-FP8` target with t
 ## 1. K cost map (server, measured) — [`COST_MAP.md`](COST_MAP.md)
 
 The map covers 10 (batch, context) shapes × {OFF, Z, K1, K3, K5}, with two launches each, under a pre-registered
-comparison rule ([`STAGE1_R2_PREREG.md`](../costmap_20261107/STAGE1_R2_PREREG.md), result
+comparison rule ([`STAGE1_R2_PREREG.md`](../costmap_20261107/STAGE1_R2_PREREG.md), which keeps §1–§7 of
+[`STAGE1_ODD_PREREG.md`](../costmap_20261107/STAGE1_ODD_PREREG.md) (metrics; delivered ms per token is primary), result
 [`RESULT_STAGE1_R2_20261111.md`](../costmap_20261107/run_20261111r2/RESULT_STAGE1_R2_20261111.md)).
 
 - Step period grows with K at every shape. Relative to OFF, K3 is +11.6 to +42.8 % and K5 is +19.2 to +70.2 %, and
